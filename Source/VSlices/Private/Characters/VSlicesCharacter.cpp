@@ -75,3 +75,15 @@ void AVSlicesCharacter::Look(const FInputActionValue& Value)
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
 }
+
+void AVSlicesCharacter::Crouching()
+{
+	if(!bIsCrouched)
+	{
+		Crouch();
+	}
+	else
+	{
+		UnCrouch();
+	}
+}

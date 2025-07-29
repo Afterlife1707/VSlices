@@ -5,7 +5,6 @@
 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "Characters/VSlicesCharacter.h"
 
 void AVSlicesPlayerController::BeginPlay()
 {
@@ -15,6 +14,7 @@ void AVSlicesPlayerController::BeginPlay()
 	{
 		Subsystem->AddMappingContext(DefaultMappingContext, 0);
 	}
+	Char = Cast<AVSlicesCharacter>(GetCharacter());
 }
 
 void AVSlicesPlayerController::SetupInputComponent()
@@ -27,6 +27,7 @@ void AVSlicesPlayerController::SetupInputComponent()
 		EnhancedInput->BindAction(LookAction, ETriggerEvent::Triggered, this, &AVSlicesPlayerController::Look);
 		EnhancedInput->BindAction(JumpAction, ETriggerEvent::Started, this, &AVSlicesPlayerController::JumpPressed);
 		EnhancedInput->BindAction(JumpAction, ETriggerEvent::Completed, this, &AVSlicesPlayerController::JumpReleased);
+		EnhancedInput->BindAction(CrouchAction, ETriggerEvent::Started, this, &AVSlicesPlayerController::Crouch);
 	}
 	else
 	{
@@ -36,32 +37,25 @@ void AVSlicesPlayerController::SetupInputComponent()
 
 void AVSlicesPlayerController::Move(const FInputActionValue& Value)
 {
-	if (AVSlicesCharacter* Char = Cast<AVSlicesCharacter>(GetCharacter()))
-	{
-		Char->Move(Value);
-	}
+	Char->Move(Value);
 }
 
 void AVSlicesPlayerController::Look(const FInputActionValue& Value)
 {
-	if (AVSlicesCharacter* Char = Cast<AVSlicesCharacter>(GetCharacter()))
-	{
-		Char->Look(Value);
-	}
+	Char->Look(Value);
 }
 
 void AVSlicesPlayerController::JumpPressed()
 {
-	if (ACharacter* Char = GetCharacter())
-	{
-		Char->Jump();
-	}
+	Char->Jump();
 }
 
 void AVSlicesPlayerController::JumpReleased()
 {
-	if (ACharacter* Char = GetCharacter())
-	{
-		Char->StopJumping();
-	}
+	Char->StopJumping();
+}
+
+void AVSlicesPlayerController::Crouch()
+{
+	Char->Crouching();
 }

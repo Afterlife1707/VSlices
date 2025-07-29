@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Characters/VSlicesCharacter.h"
 #include "GameFramework/PlayerController.h"
 #include "VSlicesPlayerController.generated.h"
 
@@ -17,21 +18,20 @@ class VSLICES_API AVSlicesPlayerController : public APlayerController
 {
 	GENERATED_BODY()
 
-	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputMappingContext* DefaultMappingContext;
 
-	/** Jump Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* JumpAction;
 
-	/** Move Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* MoveAction;
 
-	/** Look Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* LookAction;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* CrouchAction;
 
 protected:
 	virtual void BeginPlay() override;
@@ -42,4 +42,9 @@ protected:
 	void Look(const FInputActionValue& Value);
 	void JumpPressed();
 	void JumpReleased();
+	void Crouch();
+
+private:
+	UPROPERTY()
+	AVSlicesCharacter* Char;
 };
