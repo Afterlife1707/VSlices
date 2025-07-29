@@ -1,7 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "VSlicesGameMode.h"
-#include "VSlicesCharacter.h"
+#include "GameMode/VSlicesGameMode.h"
+#include "Characters/VSlicesCharacter.h"
 #include "UObject/ConstructorHelpers.h"
 
 AVSlicesGameMode::AVSlicesGameMode()
