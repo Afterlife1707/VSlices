@@ -12,13 +12,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="070d8f0f-615a-43e5-9ae0-832eca0602f9" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/Source/VSlices/VSlices.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/VSlices/VSlices.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/VSlices/VSlicesCharacter.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/VSlices/VSlicesCharacter.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/VSlices/VSlicesGameMode.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/VSlices/VSlicesGameMode.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/VSlices.uproject" beforeDir="false" afterPath="$PROJECT_DIR$/VSlices.uproject" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.VSlices/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.VSlices/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/ThirdPerson/Blueprints/BP_ThirdPersonCharacter.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/ThirdPerson/Maps/ThirdPersonMap.umap" beforeDir="false" afterPath="$PROJECT_DIR$/Content/ThirdPerson/Maps/ThirdPersonMap.umap" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/VSlices/Private/Characters/VSlicesCharacter.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/VSlices/Private/Characters/VSlicesCharacter.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/VSlices/Private/Controllers/VSlicesPlayerController.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/VSlices/Private/Controllers/VSlicesPlayerController.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/VSlices/Private/GameMode/VSlicesGameMode.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/VSlices/Private/GameMode/VSlicesGameMode.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/VSlices/Public/Characters/VSlicesCharacter.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/VSlices/Public/Characters/VSlicesCharacter.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/VSlices/Public/Controllers/VSlicesPlayerController.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/VSlices/Public/Controllers/VSlicesPlayerController.h" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -27,10 +28,6 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
-  </component>
-  <component name="HighlightingSettingsPerFile">
-    <setting file="file://$PROJECT_DIR$/Source/VSlices/Private/VSlicesPlayerController.cpp" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/Source/VSlices/Public/VSlicesPlayerController.h" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="ProjectColorInfo"><![CDATA[{
   "customColor": "",
@@ -44,6 +41,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "C++ Project.VSlices.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "main",
     "node.js.detected.package.eslint": "true",
@@ -496,7 +494,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1753823779865</updated>
-      <workItem from="1753823782182" duration="1921000" />
+      <workItem from="1753823782182" duration="3922000" />
     </task>
     <servers />
   </component>
