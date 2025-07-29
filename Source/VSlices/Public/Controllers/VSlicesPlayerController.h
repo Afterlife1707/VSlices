@@ -32,10 +32,23 @@ class VSLICES_API AVSlicesPlayerController : public APlayerController
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* CrouchAction;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* SprintAction;
 
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
+	
+public:
+	UPROPERTY(EditDefaultsOnly, Category=Input)
+	float MaxSprintSpeed = 500.f;
+	UPROPERTY(EditDefaultsOnly, Category=Input)
+	float MaxJogSpeed = 400.f;
+	UPROPERTY(EditDefaultsOnly, Category=Input)
+	float MaxCrouchSprintSpeed = 500.f;
+	UPROPERTY(EditDefaultsOnly, Category=Input)
+	float MaxCrouchJogSpeed = 400.f;
 	
 protected:
 	void Move(const FInputActionValue& Value);
@@ -43,8 +56,10 @@ protected:
 	void JumpPressed();
 	void JumpReleased();
 	void Crouch();
+	void Sprint();
+	void UnSprint();
 
 private:
 	UPROPERTY()
-	AVSlicesCharacter* Char;
+	AVSlicesCharacter* PlayerCharacter;
 };
