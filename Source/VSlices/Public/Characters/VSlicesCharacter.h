@@ -34,14 +34,44 @@ public:
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
-	void Crouching();
+	
+	void StartSprinting();
+	void StopSprinting();
+	
+	void StartSlide();
+	void StopSlide();
+	
+	void ToggleCrouch();
+	void StartCrouch();
+	void StopCrouch();
 
 protected:
+	UPROPERTY(EditDefaultsOnly, Category=Input)
+	float MaxSprintSpeed = 500.f;
+	UPROPERTY(EditDefaultsOnly, Category=Input)
+	float MaxJogSpeed = 400.f;
+	UPROPERTY(EditDefaultsOnly, Category=Input)
+	float MaxCrouchSprintSpeed = 500.f;
+	UPROPERTY(EditDefaultsOnly, Category=Input)
+	float MaxCrouchJogSpeed = 400.f;
 
+	UPROPERTY(EditDefaultsOnly, Category = Slide)
+	float SlideDuration = 0.75f;
+	UPROPERTY(EditDefaultsOnly, Category = Slide)
+	float SlideSpeed = 1000.f;
+	UPROPERTY(EditDefaultsOnly, Category = Slide)
+	float SlideBoost = 1000.f;
+	
 public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+
+private:
+	bool bIsSprinting;
+	
+	bool bIsSliding;
+	FTimerHandle SlideTimerHandle;
 };
 

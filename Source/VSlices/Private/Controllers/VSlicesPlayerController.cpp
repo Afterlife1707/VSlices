@@ -5,7 +5,6 @@
 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "GameFramework/CharacterMovementComponent.h"
 
 void AVSlicesPlayerController::BeginPlay()
 {
@@ -16,12 +15,7 @@ void AVSlicesPlayerController::BeginPlay()
 		Subsystem->AddMappingContext(DefaultMappingContext, 0);
 	}
 	PlayerCharacter = Cast<AVSlicesCharacter>(GetCharacter());
-	if(PlayerCharacter)
-	{
-		PlayerCharacter->GetCharacterMovement()->MaxWalkSpeed = MaxJogSpeed;
-		PlayerCharacter->GetCharacterMovement()->MaxWalkSpeedCrouched = MaxCrouchJogSpeed;
-	}
-	else
+	if(!PlayerCharacter)
 	{
 		UE_LOG(LogTemp, Error, TEXT("PlayerCharacter is null!"));
 	}
@@ -69,21 +63,15 @@ void AVSlicesPlayerController::JumpReleased()
 
 void AVSlicesPlayerController::Crouch()
 {
-	PlayerCharacter->Crouching();
+	PlayerCharacter->ToggleCrouch();
 }
 
 void AVSlicesPlayerController::Sprint()
 {
-	if(!PlayerCharacter->bIsCrouched)
-		PlayerCharacter->GetCharacterMovement()->MaxWalkSpeed = MaxSprintSpeed;
-	else
-		PlayerCharacter->GetCharacterMovement()->MaxWalkSpeedCrouched = MaxCrouchSprintSpeed;
+	PlayerCharacter->StartSprinting();
 }
 
 void AVSlicesPlayerController::UnSprint()
 {
-	if(!PlayerCharacter->bIsCrouched)
-		PlayerCharacter->GetCharacterMovement()->MaxWalkSpeed = MaxJogSpeed;
-	else 
-		PlayerCharacter->GetCharacterMovement()->MaxWalkSpeedCrouched = MaxCrouchJogSpeed;
+	PlayerCharacter->StopSprinting();
 }

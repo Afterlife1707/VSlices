@@ -21,15 +21,9 @@ AVSlicesCharacter::AVSlicesCharacter()
 	bUseControllerRotationYaw = true;
 	
 	GetCharacterMovement()->bOrientRotationToMovement = true;
-	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); 
-
-	GetCharacterMovement()->JumpZVelocity = 700.f;
-	GetCharacterMovement()->AirControl = 0.35f;
-	GetCharacterMovement()->MaxWalkSpeed = 500.f;
-	GetCharacterMovement()->MinAnalogWalkSpeed = 20.f;
-	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
-	GetCharacterMovement()->BrakingDecelerationFalling = 1500.0f;
-
+	GetCharacterMovement()->MaxWalkSpeed = MaxJogSpeed;
+	GetCharacterMovement()->MaxWalkSpeedCrouched = MaxCrouchJogSpeed;
+	
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(GetMesh(), TEXT("neck_02"));
 	CameraBoom->TargetArmLength = 0.f; 
@@ -76,14 +70,70 @@ void AVSlicesCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
-void AVSlicesCharacter::Crouching()
+void AVSlicesCharacter::StartSprinting()
 {
 	if(!bIsCrouched)
 	{
-		Crouch();
+		bIsSprinting = true;
+		GetCharacterMovement()->MaxWalkSpeed = MaxSprintSpeed;
+	}
+	else
+		GetCharacterMovement()->MaxWalkSpeedCrouched = MaxCrouchSprintSpeed;
+}
+
+void AVSlicesCharacter::StopSprinting()
+{
+	if(!bIsCrouched)
+	{
+		bIsSprinting = false;
+		GetCharacterMovement()->MaxWalkSpeed = MaxJogSpeed;
+	}
+	else 
+		GetCharacterMovement()->MaxWalkSpeedCrouched = MaxCrouchJogSpeed;
+}
+
+void AVSlicesCharacter::StartSlide()
+{
+	if (bIsSliding || !GetCharacterMovement()->IsMovingOnGround())
+		return;
+	bIsSliding = true;
+	GetCharacterMovement()->MaxWalkSpeedCrouched = SlideSpeed;
+	FVector LaunchDir = GetActorForwardVector() * SlideBoost;
+	LaunchCharacter(LaunchDir, true, true);
+	
+	UE_LOG(LogTemp, Warning, TEXT("Sliding!"));
+	GetWorldTimerManager().SetTimer(SlideTimerHandle, this, &AVSlicesCharacter::StopSlide, SlideDuration, false);
+}
+
+void AVSlicesCharacter::StopSlide()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Sliding stopped"));
+	bIsSliding = false;
+	GetCharacterMovement()->MaxWalkSpeedCrouched = MaxCrouchJogSpeed;
+}
+
+void AVSlicesCharacter::ToggleCrouch()
+{
+	if (bIsCrouched)
+	{
+		StopCrouch();
 	}
 	else
 	{
-		UnCrouch();
+		StartCrouch();
 	}
 }
+
+void AVSlicesCharacter::StartCrouch()
+{
+	Crouch();
+	if (bIsSprinting)
+		StartSlide(); 
+}
+
+void AVSlicesCharacter::StopCrouch()
+{
+	UnCrouch();
+}
+
+
