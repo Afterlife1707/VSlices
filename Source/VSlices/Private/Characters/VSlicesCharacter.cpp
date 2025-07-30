@@ -97,17 +97,15 @@ void AVSlicesCharacter::StartSlide()
 	if (bIsSliding || !GetCharacterMovement()->IsMovingOnGround())
 		return;
 	bIsSliding = true;
-	GetCharacterMovement()->MaxWalkSpeedCrouched = SlideSpeed;
-	FVector LaunchDir = GetActorForwardVector() * SlideBoost;
-	LaunchCharacter(LaunchDir, true, true);
 	
-	UE_LOG(LogTemp, Warning, TEXT("Sliding!"));
+	GetCharacterMovement()->MaxWalkSpeedCrouched = SlideSpeed;
+	LaunchForward();
+	
 	GetWorldTimerManager().SetTimer(SlideTimerHandle, this, &AVSlicesCharacter::StopSlide, SlideDuration, false);
 }
 
 void AVSlicesCharacter::StopSlide()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Sliding stopped"));
 	bIsSliding = false;
 	GetCharacterMovement()->MaxWalkSpeedCrouched = MaxCrouchJogSpeed;
 }
@@ -136,4 +134,23 @@ void AVSlicesCharacter::StopCrouch()
 	UnCrouch();
 }
 
+bool AVSlicesCharacter::CanJumpInternal_Implementation() const override
+{
+	return Super::CanJumpInternal_Implementation() || bIsCrouched;
+}
 
+void AVSlicesCharacter::Jump() override
+{
+	Super::Jump();
+	if(bIsCrouched)
+		UnCrouch();
+	// if (bIsSliding) 
+	// 	LaunchForward(); //NOT WORKING
+}
+
+void AVSlicesCharacter::LaunchForward()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Launched!"));
+	FVector LaunchDir = GetActorForwardVector() * SlideBoost;
+	LaunchCharacter(LaunchDir, true, true);
+}

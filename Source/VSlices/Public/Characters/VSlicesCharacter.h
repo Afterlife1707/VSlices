@@ -44,6 +44,9 @@ public:
 	void ToggleCrouch();
 	void StartCrouch();
 	void StopCrouch();
+	virtual bool CanJumpInternal_Implementation() const override;
+	virtual void Jump() override;
+	void LaunchForward();
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category=Input)
