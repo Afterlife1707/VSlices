@@ -32,7 +32,7 @@ void AVSlicesPlayerController::SetupInputComponent()
 		EnhancedInput->BindAction(JumpAction, ETriggerEvent::Started, this, &AVSlicesPlayerController::JumpPressed);
 		EnhancedInput->BindAction(JumpAction, ETriggerEvent::Completed, this, &AVSlicesPlayerController::JumpReleased);
 		EnhancedInput->BindAction(CrouchAction, ETriggerEvent::Started, this, &AVSlicesPlayerController::Crouch);
-		EnhancedInput->BindAction(SprintAction, ETriggerEvent::Started, this, &AVSlicesPlayerController::Sprint);
+		EnhancedInput->BindAction(SprintAction, ETriggerEvent::Triggered, this, &AVSlicesPlayerController::Sprint);
 		EnhancedInput->BindAction(SprintAction, ETriggerEvent::Completed, this, &AVSlicesPlayerController::UnSprint);
 	}
 	else

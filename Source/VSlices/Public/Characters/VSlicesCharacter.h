@@ -47,6 +47,10 @@ public:
 	virtual bool CanJumpInternal_Implementation() const override;
 	virtual void Jump() override;
 	void LaunchForward();
+	
+	void StartSprintCooldown();
+	UFUNCTION()
+	void EndSprintCooldown();
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category=Input)
@@ -64,17 +68,30 @@ protected:
 	float SlideSpeed = 1000.f;
 	UPROPERTY(EditDefaultsOnly, Category = Slide)
 	float SlideBoost = 1000.f;
-	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement)
+	float SprintCooldownDuration = 0.2f;
+
+	UPROPERTY(BlueprintReadOnly, Category = Movement)
+	bool bSprintOnCooldown;
+
 public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+	//UPROPERTY(BlueprintCallable, Category=Movement)
+	UFUNCTION(BlueprintCallable, Category = Movement)
+	FORCEINLINE bool GetIsSprinting() const { return bIsSprinting; }
+	UFUNCTION(BlueprintCallable, Category = Movement)
+	FORCEINLINE bool GetIsSliding() const { return bIsSliding; }
 
 private:
 	bool bIsSprinting;
-	
+	bool bCanSprint;
 	bool bIsSliding;
 	FTimerHandle SlideTimerHandle;
+
+	FTimerHandle SprintCooldownTimer;
+	void SprintCheck(float ForwardValue, float RightValue);
 };
 

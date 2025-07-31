@@ -39,19 +39,18 @@ void AVSlicesCharacter::Move(const FInputActionValue& Value)
 	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
-	if (Controller != nullptr)
+	if (Controller)
 	{
-		// find out which way is forward
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
 
-		// get forward vector
 		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	
-		// get right vector 
 		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-
-		// add movement 
+		
+		if(!bIsCrouched || !bIsSliding)
+		{
+			SprintCheck(MovementVector.Y, MovementVector.X);
+		}
 		AddMovementInput(ForwardDirection, MovementVector.Y);
 		AddMovementInput(RightDirection, MovementVector.X);
 	}
@@ -72,9 +71,10 @@ void AVSlicesCharacter::Look(const FInputActionValue& Value)
 
 void AVSlicesCharacter::StartSprinting()
 {
+	if(!bCanSprint || bSprintOnCooldown) return;
+	bIsSprinting = true;
 	if(!bIsCrouched)
 	{
-		bIsSprinting = true;
 		GetCharacterMovement()->MaxWalkSpeed = MaxSprintSpeed;
 	}
 	else
@@ -83,9 +83,9 @@ void AVSlicesCharacter::StartSprinting()
 
 void AVSlicesCharacter::StopSprinting()
 {
+	bIsSprinting = false;
 	if(!bIsCrouched)
 	{
-		bIsSprinting = false;
 		GetCharacterMovement()->MaxWalkSpeed = MaxJogSpeed;
 	}
 	else 
@@ -134,23 +134,54 @@ void AVSlicesCharacter::StopCrouch()
 	UnCrouch();
 }
 
-bool AVSlicesCharacter::CanJumpInternal_Implementation() const override
+bool AVSlicesCharacter::CanJumpInternal_Implementation() const 
 {
 	return Super::CanJumpInternal_Implementation() || bIsCrouched;
 }
 
-void AVSlicesCharacter::Jump() override
+void AVSlicesCharacter::Jump() 
 {
 	Super::Jump();
 	if(bIsCrouched)
 		UnCrouch();
-	// if (bIsSliding) 
-	// 	LaunchForward(); //NOT WORKING
 }
 
 void AVSlicesCharacter::LaunchForward()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Launched!"));
 	FVector LaunchDir = GetActorForwardVector() * SlideBoost;
 	LaunchCharacter(LaunchDir, true, true);
+}
+
+void AVSlicesCharacter::SprintCheck(float ForwardValue, float RightValue )
+{
+	const bool bMovingForward = ForwardValue > 0.001f;
+	const bool bMovingBackward = ForwardValue < -0.001f;
+	const bool bMovingSideways = FMath::Abs(RightValue) > 0.001f;
+	bCanSprint = !bMovingSideways && !bMovingBackward && bMovingForward && !bSprintOnCooldown;
+	
+	if (bIsSprinting && (!bCanSprint || bSprintOnCooldown))
+	{
+		StopSprinting();
+		StartSprintCooldown();
+	}
+}
+void AVSlicesCharacter::StartSprintCooldown()
+{
+	if (SprintCooldownDuration > 0.0f)
+	{
+		bSprintOnCooldown = true;
+		GetWorld()->GetTimerManager().SetTimer(
+			SprintCooldownTimer, 
+			this, 
+			&AVSlicesCharacter::EndSprintCooldown, 
+			SprintCooldownDuration, 
+			false
+		);
+	}
+}
+
+void AVSlicesCharacter::EndSprintCooldown() 
+{
+	bSprintOnCooldown = false;
+	GetWorld()->GetTimerManager().ClearTimer(SprintCooldownTimer);
 }
