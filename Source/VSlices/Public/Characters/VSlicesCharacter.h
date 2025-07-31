@@ -91,7 +91,7 @@ private:
 	bool bIsSliding;
 	FTimerHandle SlideTimerHandle;
 
-	FTimerHandle SprintCooldownTimer;
+	FTimerHandle SprintCooldownTimerHandle;
 	void SprintCheck(float ForwardValue, float RightValue);
 };
 

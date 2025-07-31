@@ -69,6 +69,40 @@ void AVSlicesCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
+#pragma region JUMP
+bool AVSlicesCharacter::CanJumpInternal_Implementation() const 
+{
+	return Super::CanJumpInternal_Implementation() || bIsCrouched;
+}
+
+void AVSlicesCharacter::Jump() 
+{
+	Super::Jump();
+	if(bIsSprinting)
+	{
+		FTimerHandle JumpTimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(
+				JumpTimerHandle, 
+				this, 
+				&AVSlicesCharacter::LaunchForward, 
+				0.1f, 
+				false
+			);
+	}
+	if(bIsCrouched)
+		UnCrouch();
+}
+
+void AVSlicesCharacter::LaunchForward()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Launched"));
+	FVector LaunchDir = GetActorForwardVector() * SlideBoost;
+	LaunchCharacter(LaunchDir, true, true);
+}
+#pragma endregion JUMP
+
+#pragma region SPRINT
+
 void AVSlicesCharacter::StartSprinting()
 {
 	if(!bCanSprint || bSprintOnCooldown) return;
@@ -92,6 +126,42 @@ void AVSlicesCharacter::StopSprinting()
 		GetCharacterMovement()->MaxWalkSpeedCrouched = MaxCrouchJogSpeed;
 }
 
+void AVSlicesCharacter::SprintCheck(float ForwardValue, float RightValue )
+{
+	const bool bMovingForward = ForwardValue > 0.001f;
+	const bool bMovingBackward = ForwardValue < -0.001f;
+	const bool bMovingSideways = FMath::Abs(RightValue) > 0.001f;
+	bCanSprint = !bMovingSideways && !bMovingBackward && bMovingForward && !bSprintOnCooldown;
+	
+	if (bIsSprinting && (!bCanSprint || bSprintOnCooldown))
+	{
+		StopSprinting();
+		StartSprintCooldown();
+	}
+}
+void AVSlicesCharacter::StartSprintCooldown()
+{
+	if (SprintCooldownDuration > 0.0f)
+	{
+		bSprintOnCooldown = true;
+		GetWorld()->GetTimerManager().SetTimer(
+			SprintCooldownTimerHandle, 
+			this, 
+			&AVSlicesCharacter::EndSprintCooldown, 
+			SprintCooldownDuration, 
+			false
+		);
+	}
+}
+
+void AVSlicesCharacter::EndSprintCooldown() 
+{
+	bSprintOnCooldown = false;
+	GetWorld()->GetTimerManager().ClearTimer(SprintCooldownTimerHandle);
+}
+#pragma endregion SPRINT
+
+#pragma region SLIDE
 void AVSlicesCharacter::StartSlide()
 {
 	if (bIsSliding || !GetCharacterMovement()->IsMovingOnGround())
@@ -109,7 +179,9 @@ void AVSlicesCharacter::StopSlide()
 	bIsSliding = false;
 	GetCharacterMovement()->MaxWalkSpeedCrouched = MaxCrouchJogSpeed;
 }
+#pragma endregion SLIDE
 
+#pragma region CROUCH
 void AVSlicesCharacter::ToggleCrouch()
 {
 	if (bIsCrouched)
@@ -133,55 +205,5 @@ void AVSlicesCharacter::StopCrouch()
 {
 	UnCrouch();
 }
+#pragma endregion CROUCH
 
-bool AVSlicesCharacter::CanJumpInternal_Implementation() const 
-{
-	return Super::CanJumpInternal_Implementation() || bIsCrouched;
-}
-
-void AVSlicesCharacter::Jump() 
-{
-	Super::Jump();
-	if(bIsCrouched)
-		UnCrouch();
-}
-
-void AVSlicesCharacter::LaunchForward()
-{
-	FVector LaunchDir = GetActorForwardVector() * SlideBoost;
-	LaunchCharacter(LaunchDir, true, true);
-}
-
-void AVSlicesCharacter::SprintCheck(float ForwardValue, float RightValue )
-{
-	const bool bMovingForward = ForwardValue > 0.001f;
-	const bool bMovingBackward = ForwardValue < -0.001f;
-	const bool bMovingSideways = FMath::Abs(RightValue) > 0.001f;
-	bCanSprint = !bMovingSideways && !bMovingBackward && bMovingForward && !bSprintOnCooldown;
-	
-	if (bIsSprinting && (!bCanSprint || bSprintOnCooldown))
-	{
-		StopSprinting();
-		StartSprintCooldown();
-	}
-}
-void AVSlicesCharacter::StartSprintCooldown()
-{
-	if (SprintCooldownDuration > 0.0f)
-	{
-		bSprintOnCooldown = true;
-		GetWorld()->GetTimerManager().SetTimer(
-			SprintCooldownTimer, 
-			this, 
-			&AVSlicesCharacter::EndSprintCooldown, 
-			SprintCooldownDuration, 
-			false
-		);
-	}
-}
-
-void AVSlicesCharacter::EndSprintCooldown() 
-{
-	bSprintOnCooldown = false;
-	GetWorld()->GetTimerManager().ClearTimer(SprintCooldownTimer);
-}
