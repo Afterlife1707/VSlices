@@ -40,6 +40,7 @@ public:
 	
 	void StartSlide();
 	void StopSlide();
+	void HandleSlideTick(float DeltaSeconds);
 	
 	void ToggleCrouch();
 	void StartCrouch();
@@ -51,27 +52,49 @@ public:
 	void StartSprintCooldown();
 	UFUNCTION()
 	void EndSprintCooldown();
-
 protected:
-	UPROPERTY(EditDefaultsOnly, Category=Input)
+	virtual void Tick(float DeltaSeconds) override;
+	
+protected:
+	UPROPERTY(EditDefaultsOnly, Category="Input")
 	float MaxSprintSpeed = 500.f;
-	UPROPERTY(EditDefaultsOnly, Category=Input)
+	UPROPERTY(EditDefaultsOnly, Category="Input")
 	float MaxJogSpeed = 400.f;
-	UPROPERTY(EditDefaultsOnly, Category=Input)
+	UPROPERTY(EditDefaultsOnly, Category="Input")
 	float MaxCrouchSprintSpeed = 500.f;
-	UPROPERTY(EditDefaultsOnly, Category=Input)
+	UPROPERTY(EditDefaultsOnly, Category="Input")
 	float MaxCrouchJogSpeed = 400.f;
 
-	UPROPERTY(EditDefaultsOnly, Category = Slide)
+	//Slide
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Slide")
 	float SlideDuration = 0.75f;
-	UPROPERTY(EditDefaultsOnly, Category = Slide)
+	UPROPERTY(EditDefaultsOnly, Category = "Slide")
 	float SlideSpeed = 1000.f;
-	UPROPERTY(EditDefaultsOnly, Category = Slide)
+	UPROPERTY(EditDefaultsOnly, Category = "Slide")
 	float SlideBoost = 1000.f;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement)
+	UPROPERTY(EditDefaultsOnly, Category = "Slide")
+	float MaxSlideDuration = 3.0f;
+	UPROPERTY(EditDefaultsOnly, Category = "Slide")
+	float SlideExtensionPerTick = 0.05f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Slide")
+	float UphillThreshold = 0.1f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Slide") 
+	float DownhillThreshold = 0.1f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Slide")
+	float MinSlopeAngle = 5.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Slide")
+	float UphillDurationMultiplier = 0.5f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Slide")
+	float DownhillSpeedThreshold = 300.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Slide")  
+	float MinSlideSpeed = 100.0f;
+
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
 	float SprintCooldownDuration = 0.2f;
 
-	UPROPERTY(BlueprintReadOnly, Category = Movement)
+	UPROPERTY(BlueprintReadOnly, Category = "Input")
 	bool bSprintOnCooldown;
 
 public:
@@ -89,6 +112,8 @@ private:
 	bool bIsSprinting;
 	bool bCanSprint;
 	bool bIsSliding;
+	float SlideElapsed = 0.0f;
+	float ActualSlideDuration = 0.0f;
 	FTimerHandle SlideTimerHandle;
 
 	FTimerHandle SprintCooldownTimerHandle;

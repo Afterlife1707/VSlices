@@ -8,6 +8,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/Controller.h"
 #include "InputActionValue.h"
+#include "LoggingMacros.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -32,6 +33,16 @@ AVSlicesCharacter::AVSlicesCharacter()
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); 
 	FollowCamera->bUsePawnControlRotation = false; 
+}
+
+void AVSlicesCharacter::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+	
+	if (bIsSliding)
+	{
+		HandleSlideTick(DeltaSeconds);
+	}
 }
 
 void AVSlicesCharacter::Move(const FInputActionValue& Value)
@@ -159,6 +170,7 @@ void AVSlicesCharacter::EndSprintCooldown()
 	bSprintOnCooldown = false;
 	GetWorld()->GetTimerManager().ClearTimer(SprintCooldownTimerHandle);
 }
+
 #pragma endregion SPRINT
 
 #pragma region SLIDE
@@ -166,17 +178,64 @@ void AVSlicesCharacter::StartSlide()
 {
 	if (bIsSliding || !GetCharacterMovement()->IsMovingOnGround())
 		return;
+
 	bIsSliding = true;
-	
+	SlideElapsed = 0.f;
+	ActualSlideDuration = SlideDuration;
+
 	GetCharacterMovement()->MaxWalkSpeedCrouched = SlideSpeed;
 	LaunchForward();
-	
-	GetWorldTimerManager().SetTimer(SlideTimerHandle, this, &AVSlicesCharacter::StopSlide, SlideDuration, false);
+	Crouch();
+}
+
+void AVSlicesCharacter::HandleSlideTick(float DeltaSeconds)
+{
+	SlideElapsed += DeltaSeconds;
+
+	const float CurrentSpeed = GetVelocity().Size();
+	if (CurrentSpeed < MinSlideSpeed || SlideElapsed >= ActualSlideDuration)
+	{
+		StopSlide();
+		return;
+	}
+
+	// slope angle 
+	const FVector FloorNormal = GetCharacterMovement()->CurrentFloor.HitResult.ImpactNormal;
+	const float FloorDotUp = FVector::DotProduct(FloorNormal, FVector::UpVector);
+	const float SlopeAngleDegrees = FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(FloorDotUp, 0.0f, 1.0f)));
+
+	if (SlopeAngleDegrees <= MinSlopeAngle)
+		return;
+
+	// slope direction
+	const FVector SlopeDirection = FVector::CrossProduct(FloorNormal, 
+	FVector::CrossProduct(FloorNormal, FVector::UpVector)).GetSafeNormal();
+	const float FacingDot = FVector::DotProduct(GetActorForwardVector(), SlopeDirection);
+    
+	//  uphill 
+	if (FacingDot < -UphillThreshold && SlideElapsed > SlideDuration * UphillDurationMultiplier)
+	{
+		StopSlide();
+		return;
+	}
+
+	// downhill 
+	if (FacingDot > DownhillThreshold && CurrentSpeed > DownhillSpeedThreshold)
+	{
+		ActualSlideDuration = FMath::Min(ActualSlideDuration + SlideExtensionPerTick, MaxSlideDuration);
+	}
 }
 
 void AVSlicesCharacter::StopSlide()
 {
+	LOG_Warning("Stop Sliding");
+	if (!bIsSliding)
+		return;
+
 	bIsSliding = false;
+	SlideElapsed = 0.f;
+	ActualSlideDuration = 0.f;
+
 	GetCharacterMovement()->MaxWalkSpeedCrouched = MaxCrouchJogSpeed;
 }
 #pragma endregion SLIDE
@@ -185,13 +244,9 @@ void AVSlicesCharacter::StopSlide()
 void AVSlicesCharacter::ToggleCrouch()
 {
 	if (bIsCrouched)
-	{
 		StopCrouch();
-	}
 	else
-	{
 		StartCrouch();
-	}
 }
 
 void AVSlicesCharacter::StartCrouch()
