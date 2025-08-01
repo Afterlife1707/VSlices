@@ -1,7 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "Characters/VSlicesCharacter.h"
-#include "Engine/LocalPlayer.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -58,9 +57,11 @@ void AVSlicesCharacter::Move(const FInputActionValue& Value)
 		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 		
+		const FSlopeInfo& SlopeInfo = GetSlopeInfo();
+		ApplySlopeRestrictions(MovementVector, SlopeInfo);
 		if(!bIsCrouched || !bIsSliding)
 		{
-			SprintCheck(MovementVector.Y, MovementVector.X);
+			SprintCheck(MovementVector.Y, MovementVector.X, SlopeInfo);
 		}
 		AddMovementInput(ForwardDirection, MovementVector.Y);
 		AddMovementInput(RightDirection, MovementVector.X);
@@ -137,13 +138,13 @@ void AVSlicesCharacter::StopSprinting()
 		GetCharacterMovement()->MaxWalkSpeedCrouched = MaxCrouchJogSpeed;
 }
 
-void AVSlicesCharacter::SprintCheck(float ForwardValue, float RightValue )
+void AVSlicesCharacter::SprintCheck(float ForwardValue, float RightValue, const FSlopeInfo& SlopeInfo)
 {
 	const bool bMovingForward = ForwardValue > 0.001f;
 	const bool bMovingBackward = ForwardValue < -0.001f;
 	const bool bMovingSideways = FMath::Abs(RightValue) > 0.001f;
-	bCanSprint = !bMovingSideways && !bMovingBackward && bMovingForward && !bSprintOnCooldown;
 	
+	bCanSprint = !bMovingSideways && !bMovingBackward && bMovingForward && !bSprintOnCooldown;
 	if (bIsSprinting && (!bCanSprint || bSprintOnCooldown))
 	{
 		StopSprinting();
@@ -174,6 +175,7 @@ void AVSlicesCharacter::EndSprintCooldown()
 #pragma endregion SPRINT
 
 #pragma region SLIDE
+
 void AVSlicesCharacter::StartSlide()
 {
 	if (bIsSliding || !GetCharacterMovement()->IsMovingOnGround())
@@ -199,36 +201,17 @@ void AVSlicesCharacter::HandleSlideTick(float DeltaSeconds)
 		return;
 	}
 
-	// slope angle 
-	const FVector FloorNormal = GetCharacterMovement()->CurrentFloor.HitResult.ImpactNormal;
-	const float FloorDotUp = FVector::DotProduct(FloorNormal, FVector::UpVector);
-	const float SlopeAngleDegrees = FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(FloorDotUp, 0.0f, 1.0f)));
-
-	if (SlopeAngleDegrees <= MinSlopeAngle)
-		return;
-
-	// slope direction
-	const FVector SlopeDirection = FVector::CrossProduct(FloorNormal, 
-	FVector::CrossProduct(FloorNormal, FVector::UpVector)).GetSafeNormal();
-	const float FacingDot = FVector::DotProduct(GetActorForwardVector(), SlopeDirection);
-    
-	//  uphill 
-	if (FacingDot < -UphillThreshold && SlideElapsed > SlideDuration * UphillDurationMultiplier)
-	{
+	const FSlopeInfo& SlopeInfo = GetSlopeInfo();
+	
+	if (!SlopeInfo.bIsOnSlope) return;
+	if (SlopeInfo.bIsUphill && SlideElapsed > SlideDuration * UphillDurationMultiplier)
 		StopSlide();
-		return;
-	}
-
-	// downhill 
-	if (FacingDot > DownhillThreshold && CurrentSpeed > DownhillSpeedThreshold)
-	{
+	else if (SlopeInfo.bIsDownhill && CurrentSpeed > DownhillSpeedThreshold)
 		ActualSlideDuration = FMath::Min(ActualSlideDuration + SlideExtensionPerTick, MaxSlideDuration);
-	}
 }
 
 void AVSlicesCharacter::StopSlide()
 {
-	LOG_Warning("Stop Sliding");
 	if (!bIsSliding)
 		return;
 
@@ -262,3 +245,78 @@ void AVSlicesCharacter::StopCrouch()
 }
 #pragma endregion CROUCH
 
+#pragma region SLOPE
+
+void AVSlicesCharacter::ApplySlopeRestrictions(FVector2D& MovementVector, const FSlopeInfo& SlopeInfo) const
+{
+	if (!SlopeInfo.bIsOnSlope) return;
+    
+	const bool bMovingForward = MovementVector.Y > 0.001f;
+	const bool bMovingBackward = MovementVector.Y < -0.001f;
+    
+	// Restrict uphill movement on steep slopes
+	if (bMovingForward && SlopeInfo.bIsUphill)
+	{
+		if(SlopeInfo.SlopeAngle > MinSlopeSpeedDecreaseAngle)
+		{
+			if(bIsSprinting) MovementVector.Y *= 0.75f;
+			else MovementVector.Y *= 0.5f;
+		}
+		else if(SlopeInfo.SlopeAngle > MaxWalkableUphillAngle)
+		{
+			MovementVector.Y = 0.0f; 
+			LOG_WARNING("Cannot walk up steep slope: %.1f degrees", SlopeInfo.SlopeAngle);
+		}
+	}
+	if (bMovingBackward && SlopeInfo.bIsDownhill && SlopeInfo.SlopeAngle > MaxWalkableDownhillAngle)
+	{
+		MovementVector.Y = 0.0f; // Block backward movement
+		LOG_WARNING("Cannot walk up steep downhill slope: %.1f degrees", SlopeInfo.SlopeAngle);
+	}
+}
+
+FSlopeInfo AVSlicesCharacter::GetSlopeInfo() 
+{
+	const float CurrentTime = GetWorld()->GetTimeSeconds();
+	if (CurrentTime - LastSlopeUpdateTime >= SlopeUpdateInterval)
+	{
+		UpdateSlopeInfo();
+		LastSlopeUpdateTime = CurrentTime;
+	}
+	return CachedSlopeInfo;
+}
+
+void AVSlicesCharacter::UpdateSlopeInfo()
+{
+	CachedSlopeInfo = FSlopeInfo();
+    
+	const FHitResult& FloorHit = GetCharacterMovement()->CurrentFloor.HitResult;
+	if (!FloorHit.IsValidBlockingHit()) 
+		return;
+    
+	// slope angle
+	const FVector FloorNormal = FloorHit.ImpactNormal;
+	const float FloorDotUp = FVector::DotProduct(FloorNormal, FVector::UpVector);
+	CachedSlopeInfo.SlopeAngle = FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(FloorDotUp, 0.0f, 1.0f)));
+    
+	if (CachedSlopeInfo.SlopeAngle <= MinSlopeAngle) 
+		return;
+    
+	CachedSlopeInfo.bIsOnSlope = true;
+    
+	// slope direction and character alignment
+	const FVector SlopeDirection = FVector::CrossProduct(FloorNormal, 
+		FVector::CrossProduct(FloorNormal, FVector::UpVector)).GetSafeNormal();
+	CachedSlopeInfo.FacingAlignment = FVector::DotProduct(GetActorForwardVector(), SlopeDirection);
+    
+	// uphill/downhill
+	CachedSlopeInfo.bIsUphill = CachedSlopeInfo.FacingAlignment < -UphillThreshold;
+	CachedSlopeInfo.bIsDownhill = CachedSlopeInfo.FacingAlignment > DownhillThreshold;
+}
+
+void AVSlicesCharacter::InvalidateSlopeCache() //use when needed
+{
+	LastSlopeUpdateTime = 0.0f;
+}
+
+#pragma endregion SLOPE
