@@ -37,10 +37,24 @@ AVSlicesCharacter::AVSlicesCharacter()
 void AVSlicesCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-	
 	if (bIsSliding)
 	{
 		HandleSlideTick(DeltaSeconds);
+	}
+
+	if (!bWasFalling && GetCharacterMovement()->IsFalling())
+	{
+		// Just started falling
+		bWasFalling = true;
+		FallStartZ = GetActorLocation().Z;
+	}
+
+	if (bWasFalling && !GetCharacterMovement()->IsFalling())
+	{
+		// Just landed
+		bWasFalling = false;
+		const float FallDistance = FallStartZ - GetActorLocation().Z;
+		HandleLanding(FallDistance);
 	}
 }
 
@@ -109,7 +123,7 @@ void AVSlicesCharacter::LaunchForward()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Launched"));
 	FVector LaunchDir = GetActorForwardVector() * SlideBoost;
-	LaunchCharacter(LaunchDir, true, true);
+	LaunchCharacter(LaunchDir, true, false);
 }
 #pragma endregion JUMP
 
@@ -320,3 +334,19 @@ void AVSlicesCharacter::InvalidateSlopeCache() //use when needed
 }
 
 #pragma endregion SLOPE
+
+void AVSlicesCharacter::HandleLanding(const float FallDistance)
+{
+	const float Speed = GetVelocity().Size();
+
+	if (FallDistance >= HardLandingMinFallDistance)
+	{
+		GetCharacterMovement()->DisableMovement();
+		PlayAnimMontage(HardLandAnim);
+	}
+	else if (FallDistance >= RollMinFallDistance && Speed >= RollSpeedThreshold)
+	{
+		PlayAnimMontage(RollAnim);
+	}
+	// else normal landing
+}
