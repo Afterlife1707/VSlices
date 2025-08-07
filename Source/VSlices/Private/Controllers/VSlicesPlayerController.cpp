@@ -68,10 +68,10 @@ void AVSlicesPlayerController::Crouch()
 
 void AVSlicesPlayerController::Sprint()
 {
-	PlayerCharacter->StartSprinting();
+	PlayerCharacter->GetSprintComponent()->StartSprinting();
 }
 
 void AVSlicesPlayerController::UnSprint()
 {
-	PlayerCharacter->StopSprinting();
+	PlayerCharacter->GetSprintComponent()->StopSprinting();
 }
