@@ -46,6 +46,7 @@ void AVSlicesCharacter::Tick(float DeltaSeconds)
 	{
 		// Just started falling
 		bWasFalling = true;
+		LastVelocity = GetVelocity().Length();
 		FallStartZ = GetActorLocation().Z;
 	}
 
@@ -337,14 +338,13 @@ void AVSlicesCharacter::InvalidateSlopeCache() //use when needed
 
 void AVSlicesCharacter::HandleLanding(const float FallDistance)
 {
-	const float Speed = GetVelocity().Size();
-
+	LOG_INFO("Fall distance: %f and last velocity: %f", FallDistance, LastVelocity);
 	if (FallDistance >= HardLandingMinFallDistance)
 	{
 		GetCharacterMovement()->DisableMovement();
 		PlayAnimMontage(HardLandAnim);
 	}
-	else if (FallDistance >= RollMinFallDistance && Speed >= RollSpeedThreshold)
+	else if (FallDistance >= RollMinFallDistance && LastVelocity>=MaxJogSpeed-50.f)
 	{
 		PlayAnimMontage(RollAnim);
 	}

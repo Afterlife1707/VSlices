@@ -162,13 +162,12 @@ private:
 	//fall
 	float FallStartZ = 0.f;
 	bool bWasFalling = false;
-	void HandleLanding(float FallDistance);
+	float LastVelocity;
+	void HandleLanding(const float FallDistance);
 	UPROPERTY(EditDefaultsOnly, Category = "Landing")
 	float HardLandingMinFallDistance = 600.f;
 	UPROPERTY(EditDefaultsOnly, Category = "Landing")
 	float RollMinFallDistance = 300.f;
-	UPROPERTY(EditDefaultsOnly, Category = "Landing")
-	float RollSpeedThreshold = 500.f;
 	UPROPERTY(EditDefaultsOnly, Category = "Landing")
 	UAnimMontage* RollAnim;
 	UPROPERTY(EditDefaultsOnly, Category = "Landing")
