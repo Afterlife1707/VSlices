@@ -36,30 +36,23 @@ void USprintComponent::BeginPlay()
 
 void USprintComponent::StartSprinting()
 {
-    if(!bCanSprint || bSprintOnCooldown) return;
-    bIsSprinting = true;
-    
-    if(!OwnerCharacter)
-    {
-        LOG_ERROR("SprintComponent: Owner is not a Character!");
+    if (!bCanSprint || bSprintOnCooldown || !OwnerCharacter || !MovementComponent) 
         return;
-    }
-    if(!OwnerCharacter->bIsCrouched)
-    {
+    
+    bIsSprinting = true;
+    if (!OwnerCharacter->bIsCrouched)
         MovementComponent->MaxWalkSpeed = MaxSprintSpeed;
-    }
     else
         MovementComponent->MaxWalkSpeedCrouched = MaxCrouchSprintSpeed;
 }
 
 void USprintComponent::StopSprinting()
 {
+    if (!OwnerCharacter || !MovementComponent) return;
+    
     bIsSprinting = false;
-        
-    if(!OwnerCharacter->bIsCrouched)
-    {
+    if (!OwnerCharacter->bIsCrouched)
         MovementComponent->MaxWalkSpeed = MaxJogSpeed;
-    }
     else 
         MovementComponent->MaxWalkSpeedCrouched = MaxCrouchJogSpeed;
 }

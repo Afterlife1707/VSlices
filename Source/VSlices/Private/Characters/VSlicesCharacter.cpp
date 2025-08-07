@@ -58,7 +58,7 @@ void AVSlicesCharacter::Move(const FInputActionValue& Value)
 	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
-	if (Controller)
+	if (Controller && MovementVector.SizeSquared() > 0.0f)
 	{
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
@@ -103,6 +103,8 @@ bool AVSlicesCharacter::CanJumpInternal_Implementation() const
 
 void AVSlicesCharacter::Jump() 
 {
+	if (!bCanJump)
+		return;
 	Super::Jump();
 	if (GetIsSprinting())
 	{
@@ -117,6 +119,19 @@ void AVSlicesCharacter::Jump()
 	}
 	if(bIsCrouched)
 		UnCrouch();
+    bCanJump = false;
+	GetWorldTimerManager().SetTimer(
+		JumpCooldownTimerHandle,
+		this,
+		&AVSlicesCharacter::ResetJumpCooldown,
+		JumpCooldownTime,
+		false
+	);
+}
+
+void AVSlicesCharacter::ResetJumpCooldown()
+{
+	bCanJump = true;
 }
 
 void AVSlicesCharacter::LaunchForward()

@@ -35,6 +35,9 @@ class AVSlicesCharacter : public ACharacter
 	USlopeComponent* SlopeComponent;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	ULandingComponent* LandingComponent;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
+	float JumpCooldownTime = 1.f;
 
 public:
 	AVSlicesCharacter();
@@ -52,6 +55,7 @@ public:
 	void StopCrouch();
 	virtual bool CanJumpInternal_Implementation() const override;
 	virtual void Jump() override;
+	void ResetJumpCooldown();
 	void LaunchForward();
 
 protected:
@@ -71,5 +75,9 @@ public:
 	FORCEINLINE bool GetIsSprinting() const { return SprintComponent ? SprintComponent->GetIsSprinting() : false; }
 	UFUNCTION(BlueprintCallable, Category = Movement)
 	FORCEINLINE bool GetIsSliding() const { return SlideComponent ? SlideComponent->IsSliding() : false; }
+
+private:
+	bool bCanJump = true;
+	FTimerHandle JumpCooldownTimerHandle;
 
 };

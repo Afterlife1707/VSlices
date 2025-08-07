@@ -43,35 +43,42 @@ void AVSlicesPlayerController::SetupInputComponent()
 
 void AVSlicesPlayerController::Move(const FInputActionValue& Value)
 {
-	PlayerCharacter->Move(Value);
+	if (PlayerCharacter)
+		PlayerCharacter->Move(Value);
 }
 
 void AVSlicesPlayerController::Look(const FInputActionValue& Value)
 {
-	PlayerCharacter->Look(Value);
+	if (PlayerCharacter)
+		PlayerCharacter->Look(Value);
 }
 
 void AVSlicesPlayerController::JumpPressed()
 {
-	PlayerCharacter->Jump();
+	if (PlayerCharacter)
+		PlayerCharacter->Jump();
 }
 
 void AVSlicesPlayerController::JumpReleased()
 {
-	PlayerCharacter->StopJumping();
+	if (PlayerCharacter)
+		PlayerCharacter->StopJumping();
 }
 
 void AVSlicesPlayerController::Crouch()
 {
-	PlayerCharacter->ToggleCrouch();
+	if (PlayerCharacter)
+		PlayerCharacter->ToggleCrouch();
 }
 
 void AVSlicesPlayerController::Sprint()
 {
-	PlayerCharacter->GetSprintComponent()->StartSprinting();
+	if (PlayerCharacter && PlayerCharacter->GetSprintComponent())
+		PlayerCharacter->GetSprintComponent()->StartSprinting();
 }
 
 void AVSlicesPlayerController::UnSprint()
 {
-	PlayerCharacter->GetSprintComponent()->StopSprinting();
+	if (PlayerCharacter && PlayerCharacter->GetSprintComponent())
+		PlayerCharacter->GetSprintComponent()->StopSprinting();
 }

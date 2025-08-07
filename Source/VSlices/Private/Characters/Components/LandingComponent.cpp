@@ -55,16 +55,18 @@ void ULandingComponent::HandleLanding(const float FallDistance) const
 {
 	LOG_INFO("Fall distance: %f and last velocity: %f", FallDistance, LastVelocity);
 
+	if (!OwnerCharacter) return;
+    
 	const float MaxJogSpeed = OwnerCharacter->GetMaxJogSpeed();
-	
+    
 	if (FallDistance >= HardLandingMinFallDistance)
 	{
-		OwnerCharacter->GetCharacterMovement()->DisableMovement();
+		if (UCharacterMovementComponent* MovementComp = OwnerCharacter->GetCharacterMovement())
+			MovementComp->DisableMovement();
 		OwnerCharacter->PlayAnimMontage(HardLandAnim);
 	}
 	else if (FallDistance >= RollMinFallDistance && LastVelocity >= MaxJogSpeed - 50.f)
 	{
 		OwnerCharacter->PlayAnimMontage(RollAnim);
 	}
-	// else normal landing - no special handling needed
 }
