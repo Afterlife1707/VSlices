@@ -20,8 +20,8 @@ void USprintComponent::BeginPlay()
         MovementComponent = OwnerCharacter->GetCharacterMovement();
         if (MovementComponent)
         {
-            MovementComponent->MaxWalkSpeed = MaxJogSpeed;
-            MovementComponent->MaxWalkSpeedCrouched = MaxCrouchJogSpeed;
+            MovementComponent->MaxWalkSpeed = OwnerCharacter->GetMaxJogSpeed();
+            MovementComponent->MaxWalkSpeedCrouched = OwnerCharacter->GetMaxCrouchJogSpeed();
         }
         else
         {
@@ -41,9 +41,9 @@ void USprintComponent::StartSprinting()
     
     bIsSprinting = true;
     if (!OwnerCharacter->bIsCrouched)
-        MovementComponent->MaxWalkSpeed = MaxSprintSpeed;
+        MovementComponent->MaxWalkSpeed = OwnerCharacter->GetMaxSprintSpeed();
     else
-        MovementComponent->MaxWalkSpeedCrouched = MaxCrouchSprintSpeed;
+        MovementComponent->MaxWalkSpeedCrouched = OwnerCharacter->GetMaxCrouchSprintSpeed();
 }
 
 void USprintComponent::StopSprinting()
@@ -52,13 +52,18 @@ void USprintComponent::StopSprinting()
     
     bIsSprinting = false;
     if (!OwnerCharacter->bIsCrouched)
-        MovementComponent->MaxWalkSpeed = MaxJogSpeed;
+        MovementComponent->MaxWalkSpeed = OwnerCharacter->GetMaxJogSpeed();
     else 
-        MovementComponent->MaxWalkSpeedCrouched = MaxCrouchJogSpeed;
+        MovementComponent->MaxWalkSpeedCrouched = OwnerCharacter->GetMaxCrouchJogSpeed();
 }
 
 void USprintComponent::SprintCheck(const float ForwardValue, const float RightValue)
 {
+    if (!OwnerCharacter || !MovementComponent)
+    {
+        LOG_ERROR("SprintComponent: Missing OwnerCharacter or MovementComponent in SprintCheck");
+        return;
+    }
     const bool bMovingForward = ForwardValue > 0.001f;
     const bool bMovingBackward = ForwardValue < -0.001f;
     const bool bMovingSideways = FMath::Abs(RightValue) > 0.001f;

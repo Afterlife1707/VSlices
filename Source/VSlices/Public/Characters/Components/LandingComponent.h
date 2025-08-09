@@ -6,6 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "LandingComponent.generated.h"
 
+class UCharacterMovementComponent;
 class AVSlicesCharacter;
 class USprintComponent;
 class UAnimMontage;
@@ -22,20 +23,19 @@ protected:
     virtual void BeginPlay() override;
 
 public:
-    // Called from character's Tick to handle fall detection
+    // Called from character's Tick
     void HandleFallDetection();
     void HandleLanding(float FallDistance) const;
 
 private:
     UPROPERTY()
     AVSlicesCharacter* OwnerCharacter;
-	
-    // Fall detection state
+    UPROPERTY()
+    UCharacterMovementComponent* MovementComp;
     float FallStartZ = 0.f;
     bool bWasFalling = false;
     float LastVelocity = 0.f;
 	
-    // Landing thresholds and animations
     UPROPERTY(EditDefaultsOnly, Category = "Landing")
     float HardLandingMinFallDistance = 600.f;
     UPROPERTY(EditDefaultsOnly, Category = "Landing")

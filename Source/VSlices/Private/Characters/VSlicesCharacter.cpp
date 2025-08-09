@@ -36,10 +36,10 @@ AVSlicesCharacter::AVSlicesCharacter()
 	FollowCamera->bUsePawnControlRotation = false; 
 	
 	// Create movement components
-	SprintComponent = CreateDefaultSubobject<USprintComponent>(TEXT("SprintComponent"));
-	SlideComponent = CreateDefaultSubobject<USlideComponent>(TEXT("SlideComponent"));
-	SlopeComponent = CreateDefaultSubobject<USlopeComponent>(TEXT("SlopeComponent"));
-	LandingComponent = CreateDefaultSubobject<ULandingComponent>(TEXT("LandingComponent"));
+	SprintComponent = CreateDefaultSubobject<USprintComponent>(TEXT("Sprint"));
+	SlideComponent = CreateDefaultSubobject<USlideComponent>(TEXT("Slide"));
+	SlopeComponent = CreateDefaultSubobject<USlopeComponent>(TEXT("Slope"));
+	LandingComponent = CreateDefaultSubobject<ULandingComponent>(TEXT("Landing"));
 }
 
 void AVSlicesCharacter::Tick(float DeltaSeconds)
@@ -71,7 +71,7 @@ void AVSlicesCharacter::Move(const FInputActionValue& Value)
 			SlopeComponent->ApplySlopeRestrictions(MovementVector);
 		}
         
-		if (!bIsCrouched && !GetIsSliding())
+		if (!bIsCrouched && !GetIsSliding() && SprintComponent)
 		{
 			SprintComponent->SprintCheck(MovementVector.Y, MovementVector.X);
 		}
@@ -119,12 +119,15 @@ void AVSlicesCharacter::Jump()
 	}
 	if(bIsCrouched)
 		UnCrouch();
-    bCanJump = false;
+	bCanJump = false;
+	float CurrentJumpCooldown = JumpCooldownTime;
+	if(GetIsSprinting()) CurrentJumpCooldown *= 1.5f;
+	
 	GetWorldTimerManager().SetTimer(
 		JumpCooldownTimerHandle,
 		this,
 		&AVSlicesCharacter::ResetJumpCooldown,
-		JumpCooldownTime,
+		CurrentJumpCooldown,
 		false
 	);
 }
@@ -136,14 +139,15 @@ void AVSlicesCharacter::ResetJumpCooldown()
 
 void AVSlicesCharacter::LaunchForward()
 {
-	LOG_INFO("Jump Launch");
-	const float LaunchBoost = SlideComponent ? SlideComponent->GetSlideBoost() : 1000.0f;
-	const FVector LaunchDir = GetActorForwardVector() * LaunchBoost;
+	const float CurrentSpeed = GetVelocity().Length();
+	const float SpeedRatio = FMath::Clamp(CurrentSpeed / GetMaxSprintSpeed(), 0.0f, 2.0f); // Cap at 200%
+    
+	const float SpeedMultiplier = 1.0f + (SpeedRatio * 0.5f); // 1.0 to 2.0 multiplier
+    
+	const FVector LaunchDir = GetActorForwardVector() * LaunchBoost * SpeedMultiplier;
 	LaunchCharacter(LaunchDir, true, false);
 }
 #pragma endregion JUMP
-
-#pragma region SLIDE
 
 void AVSlicesCharacter::StartSlide() const
 {
@@ -154,10 +158,6 @@ void AVSlicesCharacter::StopSlide() const
 {
 	SlideComponent->StopSlide();
 }
-
-#pragma endregion SLIDE
-
-#pragma region CROUCH
 
 void AVSlicesCharacter::ToggleCrouch()
 {
@@ -178,5 +178,3 @@ void AVSlicesCharacter::StopCrouch()
 {
 	UnCrouch();
 }
-
-#pragma endregion CROUCH

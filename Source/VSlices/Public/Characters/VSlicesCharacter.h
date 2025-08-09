@@ -38,7 +38,18 @@ class AVSlicesCharacter : public ACharacter
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	float JumpCooldownTime = 1.f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
+	float LaunchBoost = 600.f;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement Speed", meta = (AllowPrivateAccess = "true"))
+	float MaxJogSpeed = 600.0f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement Speed", meta = (AllowPrivateAccess = "true"))
+	float MaxCrouchJogSpeed = 300.0f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement Speed", meta = (AllowPrivateAccess = "true"))
+	float MaxSprintSpeed = 1200.0f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement Speed", meta = (AllowPrivateAccess = "true"))
+	float MaxCrouchSprintSpeed = 600.0f;
+	
 public:
 	AVSlicesCharacter();
 	
@@ -68,11 +79,16 @@ public:
 	FORCEINLINE USprintComponent* GetSprintComponent() const { return SprintComponent; }
 	FORCEINLINE USlideComponent* GetSlideComponent() const { return SlideComponent; }
 	FORCEINLINE USlopeComponent* GetSlopeComponent() const { return SlopeComponent; }
+	
 	FORCEINLINE FSlopeInfo GetSlopeInfo() const { return SlopeComponent->GetSlopeInfo(); }
-	FORCEINLINE float GetMaxJogSpeed() const { return SprintComponent->GetMaxJogSpeed(); }
-	FORCEINLINE float GetMaxCrouchJogSpeed() const { return SprintComponent->GetMaxCrouchJogSpeed(); }
+	
+	FORCEINLINE float GetMaxJogSpeed() const { return MaxJogSpeed; }
+	FORCEINLINE float GetMaxCrouchJogSpeed() const { return MaxCrouchJogSpeed; }
+	FORCEINLINE float GetMaxSprintSpeed() const { return MaxSprintSpeed; }
+	FORCEINLINE float GetMaxCrouchSprintSpeed() const { return MaxCrouchSprintSpeed; }
+	
 	UFUNCTION(BlueprintCallable, Category = Movement)
-	FORCEINLINE bool GetIsSprinting() const { return SprintComponent ? SprintComponent->GetIsSprinting() : false; }
+	FORCEINLINE bool GetIsSprinting() const { return SprintComponent ? true : false; }
 	UFUNCTION(BlueprintCallable, Category = Movement)
 	FORCEINLINE bool GetIsSliding() const { return SlideComponent ? SlideComponent->IsSliding() : false; }
 

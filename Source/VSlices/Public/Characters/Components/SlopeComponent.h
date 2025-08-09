@@ -62,16 +62,13 @@ protected:
 	float SlopeUpdateInterval = 0.1f;
 
 private:
-	// Cached components
 	UPROPERTY()
 	AVSlicesCharacter* OwnerCharacter;
 	UPROPERTY()
 	UCharacterMovementComponent* MovementComponent;
 
-	// Slope cache
 	FSlopeInfo CachedSlopeInfo;
 	float LastSlopeUpdateTime = 0.0f;
 	
-	// Internal functions
 	void UpdateSlopeInfo();
 };

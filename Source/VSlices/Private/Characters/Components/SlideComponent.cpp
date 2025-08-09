@@ -16,7 +16,6 @@ void USlideComponent::BeginPlay()
 {
     Super::BeginPlay();
     
-    // Cache references to owner and movement component
     OwnerCharacter = Cast<AVSlicesCharacter>(GetOwner());
     if (OwnerCharacter)
     {

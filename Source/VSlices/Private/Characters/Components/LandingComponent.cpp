@@ -17,8 +17,8 @@ void ULandingComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	// Cache owner character reference
 	OwnerCharacter = Cast<AVSlicesCharacter>(GetOwner());
+	MovementComp = OwnerCharacter->GetCharacterMovement();
 	if (!OwnerCharacter)
 	{
 		LOG_ERROR("LandingComponent: Owner is not a Character!");
@@ -27,11 +27,7 @@ void ULandingComponent::BeginPlay()
 
 void ULandingComponent::HandleFallDetection()
 {
-	if (!OwnerCharacter)
-		return;
-
-	const UCharacterMovementComponent* MovementComp = OwnerCharacter->GetCharacterMovement();
-	if (!MovementComp)
+	if (!OwnerCharacter || !MovementComp)
 		return;
 
 	if (!bWasFalling && MovementComp->IsFalling())
@@ -61,8 +57,7 @@ void ULandingComponent::HandleLanding(const float FallDistance) const
     
 	if (FallDistance >= HardLandingMinFallDistance)
 	{
-		if (UCharacterMovementComponent* MovementComp = OwnerCharacter->GetCharacterMovement())
-			MovementComp->DisableMovement();
+		MovementComp->DisableMovement();
 		OwnerCharacter->PlayAnimMontage(HardLandAnim);
 	}
 	else if (FallDistance >= RollMinFallDistance && LastVelocity >= MaxJogSpeed - 50.f)

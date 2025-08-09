@@ -20,7 +20,6 @@ class VSLICES_API USlideComponent : public UActorComponent
 public:
 	USlideComponent();
 
-	// Main interface
 	UFUNCTION(BlueprintCallable, Category = "Slide")
 	void StartSlide();
 	
@@ -32,10 +31,6 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "Slide")
 	void HandleSlideTick(float DeltaSeconds);
-
-	// Getters for other components
-	UFUNCTION(BlueprintCallable, Category = "Slide")
-	float GetSlideBoost() const { return SlideBoost; }
 
 protected:
 	virtual void BeginPlay() override;
@@ -59,18 +54,16 @@ protected:
 	float MinSlideSpeed = 100.0f;
 
 private:
-	// Cached components
 	UPROPERTY()
 	AVSlicesCharacter* OwnerCharacter = nullptr;
 	UPROPERTY()
 	UCharacterMovementComponent* MovementComponent = nullptr;
 
-	// Slide state
 	bool bIsSliding = false;
 	float SlideElapsed = 0.0f;
 	float ActualSlideDuration = 0.0f;
 	FTimerHandle SlideTimerHandle;
 	
-	// Cached speeds for restoration
+	// Cached speed for restoration
 	float CachedCrouchSpeed = 0.0f;
 };
