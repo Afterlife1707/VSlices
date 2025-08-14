@@ -29,14 +29,11 @@ void USlopeComponent::ApplySlopeRestrictions(FVector2D& MovementVector)
     
     if (!CurrentSlopeInfo.bIsOnSlope) 
     {
-        LOG_INFO("Not on slope - no restrictions");
+        //LOG_INFO("Not on slope - no restrictions");
         return;
     }
     
-    LOG_INFO("On slope: %.1f degrees, Uphill: %s, Downhill: %s", 
-        CurrentSlopeInfo.SlopeAngle,
-        CurrentSlopeInfo.bIsUphill ? TEXT("Yes") : TEXT("No"),
-        CurrentSlopeInfo.bIsDownhill ? TEXT("Yes") : TEXT("No"));
+    //LOG_INFO("On slope: %.1f degrees, Uphill: %s, Downhill: %s", CurrentSlopeInfo.SlopeAngle, CurrentSlopeInfo.bIsUphill ? TEXT("Yes") : TEXT("No"), CurrentSlopeInfo.bIsDownhill ? TEXT("Yes") : TEXT("No"));
     
     const bool bMovingForward = MovementVector.Y > 0.001f;
     const bool bMovingBackward = MovementVector.Y < -0.001f;
@@ -52,9 +49,7 @@ void USlopeComponent::ApplySlopeRestrictions(FVector2D& MovementVector)
         else if (CurrentSlopeInfo.SlopeAngle > MinSlopeSpeedDecreaseAngle)
         {
             const float SpeedMultiplier = OwnerCharacter->GetIsSprinting() ? 0.75f : 0.5f;
-            LOG_INFO("Reducing uphill speed by %.0f%% (was sprinting: %s)", 
-                (1.0f - SpeedMultiplier) * 100.0f,
-                OwnerCharacter->GetIsSprinting() ? TEXT("Yes") : TEXT("No"));
+            //LOG_INFO("Reducing uphill speed by %.0f%% (was sprinting: %s)", (1.0f - SpeedMultiplier) * 100.0f,OwnerCharacter->GetIsSprinting() ? TEXT("Yes") : TEXT("No"));
             MovementVector.Y *= SpeedMultiplier;
         }
     }
@@ -62,7 +57,7 @@ void USlopeComponent::ApplySlopeRestrictions(FVector2D& MovementVector)
     // Restrict steep downhill movement when moving backward
     if (bMovingBackward && CurrentSlopeInfo.bIsDownhill && CurrentSlopeInfo.SlopeAngle > MaxWalkableDownhillAngle)
     {
-        LOG_WARNING("Blocking downhill backward movement - too steep: %.1f degrees", CurrentSlopeInfo.SlopeAngle);
+        //LOG_WARNING("Blocking downhill backward movement - too steep: %.1f degrees", CurrentSlopeInfo.SlopeAngle);
         MovementVector.Y = 0.0f;
     }
 }
@@ -92,7 +87,7 @@ void USlopeComponent::UpdateSlopeInfo()
     const FHitResult& FloorHit = MovementComponent->CurrentFloor.HitResult;
     if (!FloorHit.IsValidBlockingHit()) 
     {
-        LOG_INFO("No valid floor hit");
+       // LOG_INFO("No valid floor hit");
         return;
     }
     
@@ -101,11 +96,11 @@ void USlopeComponent::UpdateSlopeInfo()
     const float FloorDotUp = FVector::DotProduct(FloorNormal, FVector::UpVector);
     CachedSlopeInfo.SlopeAngle = FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(FloorDotUp, 0.0f, 1.0f)));
     
-    LOG_INFO("Floor angle: %.1f degrees", CachedSlopeInfo.SlopeAngle);
+    //LOG_INFO("Floor angle: %.1f degrees", CachedSlopeInfo.SlopeAngle);
     
     if (CachedSlopeInfo.SlopeAngle <= MinSlopeAngle) 
     {
-        LOG_INFO("Slope too shallow (%.1f <= %.1f)", CachedSlopeInfo.SlopeAngle, MinSlopeAngle);
+       // LOG_INFO("Slope too shallow (%.1f <= %.1f)", CachedSlopeInfo.SlopeAngle, MinSlopeAngle);
         return;
     }
     
@@ -120,8 +115,5 @@ void USlopeComponent::UpdateSlopeInfo()
     CachedSlopeInfo.bIsUphill = CachedSlopeInfo.FacingAlignment < -UphillThreshold;
     CachedSlopeInfo.bIsDownhill = CachedSlopeInfo.FacingAlignment > DownhillThreshold;
     
-    LOG_INFO("Facing alignment: %.3f, Uphill: %s, Downhill: %s", 
-        CachedSlopeInfo.FacingAlignment,
-        CachedSlopeInfo.bIsUphill ? TEXT("Yes") : TEXT("No"),
-        CachedSlopeInfo.bIsDownhill ? TEXT("Yes") : TEXT("No"));
+    //LOG_INFO("Facing alignment: %.3f, Uphill: %s, Downhill: %s", CachedSlopeInfo.FacingAlignment,CachedSlopeInfo.bIsUphill ? TEXT("Yes") : TEXT("No") CachedSlopeInfo.bIsDownhill ? TEXT("Yes") : TEXT("No"));
 }
