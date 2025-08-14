@@ -1,7 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "Characters/Components/LandingComponent.h"
-
 #include "LoggingMacros.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -49,7 +48,7 @@ void ULandingComponent::HandleFallDetection()
 
 void ULandingComponent::HandleLanding(const float FallDistance) const
 {
-	LOG_INFO("Fall distance: %f and last velocity: %f", FallDistance, LastVelocity);
+	//LOG_INFO("Fall distance: %f and last velocity: %f", FallDistance, LastVelocity);
 
 	if (!OwnerCharacter) return;
     

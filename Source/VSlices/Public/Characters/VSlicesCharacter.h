@@ -9,10 +9,6 @@
 #include "Logging/LogMacros.h"
 #include "VSlicesCharacter.generated.h"
 
-class ULandingComponent;
-class USpringArmComponent;
-class UCameraComponent;
-class USlopeComponent;
 struct FInputActionValue;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
@@ -23,18 +19,20 @@ class AVSlicesCharacter : public ACharacter
 	GENERATED_BODY()
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	USpringArmComponent* CameraBoom;
+	class USpringArmComponent* CameraBoom;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	UCameraComponent* FollowCamera;
+	class UCameraComponent* FollowCamera;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	USprintComponent* SprintComponent;
+	class USprintComponent* SprintComponent;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	USlideComponent* SlideComponent;
+	class USlideComponent* SlideComponent;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	USlopeComponent* SlopeComponent;
+	class USlopeComponent* SlopeComponent;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	ULandingComponent* LandingComponent;
+	class ULandingComponent* LandingComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
+	class UVaultComponent* VaultComponent;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	float JumpCooldownTime = 1.f;
@@ -79,6 +77,7 @@ public:
 	FORCEINLINE USprintComponent* GetSprintComponent() const { return SprintComponent; }
 	FORCEINLINE USlideComponent* GetSlideComponent() const { return SlideComponent; }
 	FORCEINLINE USlopeComponent* GetSlopeComponent() const { return SlopeComponent; }
+	FORCEINLINE UVaultComponent* GetVaultComponent() const { return VaultComponent; }
 	
 	FORCEINLINE FSlopeInfo GetSlopeInfo() const { return SlopeComponent->GetSlopeInfo(); }
 	

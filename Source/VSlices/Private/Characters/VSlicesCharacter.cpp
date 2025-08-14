@@ -12,6 +12,7 @@
 #include "Characters/Components/SprintComponent.h"
 #include "Characters/Components/SlideComponent.h"
 #include "Characters/Components/SlopeComponent.h"
+#include "Characters/Components/VaultComponent.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -40,6 +41,7 @@ AVSlicesCharacter::AVSlicesCharacter()
 	SlideComponent = CreateDefaultSubobject<USlideComponent>(TEXT("Slide"));
 	SlopeComponent = CreateDefaultSubobject<USlopeComponent>(TEXT("Slope"));
 	LandingComponent = CreateDefaultSubobject<ULandingComponent>(TEXT("Landing"));
+	VaultComponent = CreateDefaultSubobject<UVaultComponent>(TEXT("Vault"));
 }
 
 void AVSlicesCharacter::Tick(float DeltaSeconds)
@@ -103,6 +105,9 @@ bool AVSlicesCharacter::CanJumpInternal_Implementation() const
 
 void AVSlicesCharacter::Jump() 
 {
+	if (VaultComponent && !VaultComponent->IsVaulting() && VaultComponent->TryVault())
+		return;
+	LOG_INFO("Vault fail");
 	if (!bCanJump)
 		return;
 	Super::Jump();
