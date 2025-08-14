@@ -107,7 +107,6 @@ void AVSlicesCharacter::Jump()
 {
 	if (VaultComponent && !VaultComponent->IsVaulting() && VaultComponent->TryVault())
 		return;
-	LOG_INFO("Vault fail");
 	if (!bCanJump)
 		return;
 	Super::Jump();
@@ -127,7 +126,7 @@ void AVSlicesCharacter::Jump()
 	bCanJump = false;
 	float CurrentJumpCooldown = JumpCooldownTime;
 	if(GetIsSprinting()) CurrentJumpCooldown *= 1.5f;
-	
+	if(GetVelocity().Length()<150.f) return;
 	GetWorldTimerManager().SetTimer(
 		JumpCooldownTimerHandle,
 		this,

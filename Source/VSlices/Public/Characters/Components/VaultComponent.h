@@ -40,13 +40,13 @@ protected:
 
 	void StartVault(const EVaultType VaultType, const FVector& TargetLocation);
 	void MoveCharacterToTarget();
-
+	//vault
 	UPROPERTY(EditAnywhere, Category="Vaulting|Settings")
-	float MinVaultHeight = 30.f;
+	float MinHeightForShortVault = 20.f;
 	UPROPERTY(EditAnywhere, Category="Vaulting|Settings")
-	float MaxVaultHeight = 120.f;
+	float MaxHeightForShortVault = 50.f;
 	UPROPERTY(EditAnywhere, Category="Vaulting|Settings")
-	float MaxClimbHeight = 200.f;
+	float MaxHeightForTraverse = 120.f;
 	UPROPERTY(EditAnywhere, Category="Vaulting|Settings")
 	float MaxVaultThickness = 60.f;
 	

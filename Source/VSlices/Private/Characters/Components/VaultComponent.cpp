@@ -30,11 +30,9 @@ bool UVaultComponent::TryVault()
 		LOG_INFO("Try Vault fail");
 		return false;
 	}
-
 	// Trace forward for obstacle
-	const FVector Start = OwnerCharacter->GetActorLocation() + FVector(0, 0, 20); 
-	const FVector Forward = OwnerCharacter->GetActorForwardVector();
-	const FVector End = Start + Forward * 76.f;
+	const FVector Start = OwnerCharacter->GetActorLocation() - FVector(0, 0, 10); 
+	const FVector End = Start + OwnerCharacter->GetActorForwardVector() * 100.f;
 
 	FHitResult ForwardHit;
 	FCollisionQueryParams Params;
@@ -43,7 +41,6 @@ bool UVaultComponent::TryVault()
 	ObjParams.AddObjectTypesToQuery(ECC_WorldStatic);
 	
 	DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 2.0f, 0, 2.0f);
-	
 	//detect wall
 	if (!GetWorld()->LineTraceSingleByObjectType(ForwardHit, Start, End, ObjParams, Params))
 	{
@@ -74,21 +71,32 @@ bool UVaultComponent::TryVault()
 		
 		// Calculate height difference from character to wall top
 		const float WallHeight = WallTop.Z - OwnerCharacter->GetActorLocation().Z; 
-		
+		LOG_INFO("Wall height : %.2f", WallHeight);
 		//calculate wall height
-		if(WallHeight <= 70.f)
+		if(WallHeight >= MinHeightForShortVault && WallHeight<=MaxHeightForShortVault)
 		{
 			//short wall
 			LOG_INFO("Short vault - Wall height: %f", WallHeight);
 			VaultLerpTime = OwnerCharacter->PlayAnimMontage(VaultShortMontage);
 		}
-		else
+		else if(WallHeight>MaxHeightForShortVault && WallHeight<=MaxHeightForTraverse)
 		{
 			//tall wall
 			LOG_INFO("Tall vault - Wall height: %f", WallHeight);
 			VaultLerpTime = OwnerCharacter->PlayAnimMontage(VaultTallMontage);
 		}
-		
+		else
+		{
+			LOG_INFO("Vault FAIL: Wall height %.2f not within vaultable range", WallHeight);
+			return false;
+		}
+
+		if (VaultLerpTime <= 0.f)
+		{
+			LOG_INFO("Vault FAIL: Animation montage failed to play");
+			return false;
+		}
+		LOG_INFO("Vault SUCCESS: Montage duration %.2f", VaultLerpTime);
 		OwnerCharacter->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		MovementComp->SetMovementMode(MOVE_Flying);
 
