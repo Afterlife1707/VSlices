@@ -70,7 +70,6 @@ private:
 	FRotator VaultTargetRotation;
 	float VaultLerpAlpha = 0.f;
 	float VaultLerpTime = 0.8f;
-
 	FTimerHandle VaultMoveTimerHandle;
 
 	//EVaultType VaultType;

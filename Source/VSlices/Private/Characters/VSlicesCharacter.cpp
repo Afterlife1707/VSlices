@@ -28,7 +28,7 @@ AVSlicesCharacter::AVSlicesCharacter()
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
-	CameraBoom->SetupAttachment(GetMesh(), TEXT("neck_02"));
+	CameraBoom->SetupAttachment(GetMesh(), TEXT("head"));
 	CameraBoom->TargetArmLength = 0.f; 
 	CameraBoom->bUsePawnControlRotation = true; 
 
@@ -105,12 +105,11 @@ bool AVSlicesCharacter::CanJumpInternal_Implementation() const
 
 void AVSlicesCharacter::Jump() 
 {
-	if (VaultComponent && !VaultComponent->IsVaulting() && VaultComponent->TryVault())
-		return;
-	if (!bCanJump)
-		return;
+	if (VaultComponent && !VaultComponent->IsVaulting() && VaultComponent->TryVault())return;
+	if (!bCanJump) return;
+	
 	Super::Jump();
-	if (GetIsSprinting())
+	if (GetIsSprinting() && GetVelocity().Length()>=MaxJogSpeed)
 	{
 		FTimerHandle JumpTimerHandle;
 		GetWorld()->GetTimerManager().SetTimer(
@@ -124,7 +123,6 @@ void AVSlicesCharacter::Jump()
 	if(bIsCrouched)
 		UnCrouch();
 	bCanJump = false;
-	if(GetVelocity().Length()<150.f) return;
 	
 	float CurrentJumpCooldown = JumpCooldownTime;
 	if(GetIsSprinting()) CurrentJumpCooldown *= 1.5f;
