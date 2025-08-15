@@ -36,7 +36,8 @@ public:
 	UAnimMontage* ClimbShortMontage;
 	UPROPERTY(EditDefaultsOnly, Category="Vaulting|Animations")
 	UAnimMontage* ClimbTallMontage;
-	
+	EVaultType CurrentVaultType;
+
 	void FinishVault();
 
 protected:

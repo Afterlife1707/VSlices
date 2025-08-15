@@ -30,19 +30,42 @@ void UVaultComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActor
     VaultLerpAlpha += DeltaTime / VaultLerpTime;
     VaultLerpAlpha = FMath::Clamp(VaultLerpAlpha, 0.f, 1.f);
 
-    // Simple arc: parabolic curve
-    const FVector HorizontalPos = FMath::Lerp(VaultStartLocation, VaultTargetLocation, VaultLerpAlpha);
-    const float ArcHeight = FMath::Lerp(VaultStartLocation.Z, VaultTargetLocation.Z, VaultLerpAlpha) + 
-                           (4.0f * (VaultArcPeak - FMath::Max(VaultStartLocation.Z, VaultTargetLocation.Z)) * 
-                            VaultLerpAlpha * (1.0f - VaultLerpAlpha));
+    FVector NewLocation;
+    
+    // Check if this is a climbing action
+    if (CurrentVaultType == EVaultType::Climb_Short || CurrentVaultType == EVaultType::Climb_Tall)
+    {
+        // For climbing: only handle horizontal movement, let animation handle vertical
+        const FVector HorizontalStart = FVector(VaultStartLocation.X, VaultStartLocation.Y, 0);
+        const FVector HorizontalTarget = FVector(VaultTargetLocation.X, VaultTargetLocation.Y, 0);
+        const FVector HorizontalPos = FMath::Lerp(HorizontalStart, HorizontalTarget, VaultLerpAlpha);
+        
+        // Use current Z from animation, but ensure we don't go below the target at the end
+        float FinalZ = OwnerCharacter->GetActorLocation().Z;
+        
+        // Near the end of the animation, blend toward target height to ensure we reach it
+        if (VaultLerpAlpha > 0.8f)
+        {
+            const float EndBlendAlpha = (VaultLerpAlpha - 0.8f) / 0.2f; // 0 to 1 over last 20%
+            const float TargetZ = VaultTargetLocation.Z+20.f;
+            FinalZ = FMath::Lerp(FinalZ, TargetZ, EndBlendAlpha * 0.5f); // Gentle blend
+        }
+        
+        NewLocation = FVector(HorizontalPos.X, HorizontalPos.Y, FinalZ);
+    }
+    else // Vaulting
+    {
+        // Use arc trajectory to go over the obstacle
+        const FVector HorizontalPos = FMath::Lerp(VaultStartLocation, VaultTargetLocation, VaultLerpAlpha);
+        const float ArcHeight = FMath::Lerp(VaultStartLocation.Z, VaultTargetLocation.Z, VaultLerpAlpha) + 
+                               (4.0f * (VaultArcPeak - FMath::Max(VaultStartLocation.Z, VaultTargetLocation.Z)) * 
+                                VaultLerpAlpha * (1.0f - VaultLerpAlpha));
+        
+        NewLocation = FVector(HorizontalPos.X, HorizontalPos.Y, ArcHeight);
+    }
 
-    const FVector NewLocation = FVector(HorizontalPos.X, HorizontalPos.Y, ArcHeight);
     const FRotator NewRotation = FMath::RInterpTo(VaultStartRotation, VaultTargetRotation, DeltaTime, 15.f);
-
     OwnerCharacter->SetActorLocationAndRotation(NewLocation, NewRotation, false, nullptr, ETeleportType::TeleportPhysics);
-
-    if (VaultLerpAlpha >= 1.f)
-        FinishVault();
 }
 
 bool UVaultComponent::TryVault()
@@ -87,7 +110,7 @@ bool UVaultComponent::TryVault()
 bool UVaultComponent::ForwardTrace(FTraceResult& OutHitResult) const
 {
     const FVector Start = OwnerCharacter->GetActorLocation() - FVector(0, 0, 10);
-    const FVector End = Start + OwnerCharacter->GetActorForwardVector() * 100.f;
+    const FVector End = Start + OwnerCharacter->GetActorForwardVector() * 120.f;
 
     DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 2.0f, 0, 2.0f);
 
@@ -150,12 +173,16 @@ void UVaultComponent::StartVault(const EVaultType VaultType, const FVector& Targ
     if (!OwnerCharacter) return;
 
     bIsVaulting = true;
-
+    CurrentVaultType = VaultType;
     VaultStartLocation = OwnerCharacter->GetActorLocation();
     VaultTargetLocation = TargetLocation;
     VaultStartRotation = OwnerCharacter->GetActorRotation();
     VaultTargetRotation = TargetRotation;
 
+    OwnerCharacter->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    MovementComp->SetMovementMode(MOVE_Flying);
+    MovementComp->Velocity = FVector::ZeroVector;
+    
     // Play animation
     UAnimMontage* MontageToPlay = nullptr;
     switch (VaultType)
@@ -174,8 +201,6 @@ void UVaultComponent::StartVault(const EVaultType VaultType, const FVector& Targ
 
     VaultLerpAlpha = 0.f;
 
-    OwnerCharacter->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-    MovementComp->SetMovementMode(MOVE_Flying);
     
     LOG_INFO("Starting vault from %s to %s", 
         *VaultStartLocation.ToString(), 
@@ -190,7 +215,25 @@ void UVaultComponent::FinishVault()
     
     OwnerCharacter->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
     MovementComp->SetMovementMode(MOVE_Walking);
+    MovementComp->Velocity = FVector::ZeroVector;
+    
     VaultLerpAlpha = 0.f;
+    
+    OwnerCharacter->SetActorLocationAndRotation(VaultTargetLocation, VaultTargetRotation, false, nullptr, ETeleportType::TeleportPhysics);
+    
+    // Optional: Do a ground check to ensure proper landing for climbing
+    if (CurrentVaultType == EVaultType::Climb_Short || CurrentVaultType == EVaultType::Climb_Tall)
+    {
+        FVector FloorLocation = VaultTargetLocation;
+        FHitResult FloorHit;
+        if (GetWorld()->LineTraceSingleByChannel(FloorHit, FloorLocation, FloorLocation - FVector(0, 0, 200), ECC_WorldStatic))
+        {
+            // Make sure we're standing on the surface we climbed onto
+            FloorLocation.Z = FMath::Max(FloorHit.Location.Z + OwnerCharacter->GetCapsuleComponent()->GetScaledCapsuleHalfHeight(), 
+                                       VaultTargetLocation.Z);
+            OwnerCharacter->SetActorLocation(FloorLocation);
+        }
+    }
 }
 
 bool UVaultComponent::PerformTrace(FHitResult& OutHit, const FVector& Start, const FVector& End) const
