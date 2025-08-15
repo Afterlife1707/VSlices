@@ -7,17 +7,21 @@
 UENUM(BlueprintType)
 enum class EVaultType : uint8
 {
-	VAULT_SHORT UMETA(DisplayName = "Short Vault"),
-	VAULT_TALL UMETA(DisplayName = "Tall Vault"),
-	CLIMB_SHORT UMETA(DisplayName = "Short Climb"),
-	CLIMB_TALL UMETA(DisplayName = "Tall Climb")
+	Vault_Short UMETA(DisplayName = "Short Vault"),
+	Vault_Tall UMETA(DisplayName = "Tall Vault"),
+	Climb_Short UMETA(DisplayName = "Short Climb"),
+	Climb_Tall UMETA(DisplayName = "Tall Climb")
 };
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class VSLICES_API UVaultComponent : public UActorComponent
 {
 	GENERATED_BODY()
-
+	struct FTraceResult
+	{
+		FVector Location;
+		FVector Normal;
+	};
 public:
 	UVaultComponent();
 
@@ -34,12 +38,16 @@ public:
 	UAnimMontage* ClimbTallMontage;
 	
 	void FinishVault();
-	
+
 protected:
 	virtual void BeginPlay() override;
-
-	void StartVault(const EVaultType VaultType, const FVector& TargetLocation);
-	void MoveCharacterToTarget();
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	bool ForwardTrace(FTraceResult& OutHitResult
+	) const;
+	bool HeightTrace(const FTraceResult& ForwardHit, FVector& OutWallTop, float& OutWallHeight) const;
+	bool ThicknessTrace(const FTraceResult& ForwardHit, const FVector& WallTop) const;
+	void StartVault(const EVaultType VaultType, const FVector& TargetLocation, const FRotator& TargetRotation);
+	
 	//vault
 	UPROPERTY(EditAnywhere, Category="Vaulting|Settings")
 	float MinHeightForShortVault = 20.f;
@@ -48,8 +56,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Vaulting|Settings")
 	float MaxHeightForTraverse = 120.f;
 	UPROPERTY(EditAnywhere, Category="Vaulting|Settings")
-	float MaxVaultThickness = 60.f;
-	
+	float ThicknessForClimb = 60.f;
 private:
 	UPROPERTY()
 	class AVSlicesCharacter* OwnerCharacter;
@@ -67,4 +74,7 @@ private:
 
 	//EVaultType VaultType;
 	bool bIsVaulting = false;
+	bool PerformTrace(FHitResult& OutHit, const FVector& Start, const FVector& End) const;
+	UPROPERTY()
+	float VaultArcPeak;
 };

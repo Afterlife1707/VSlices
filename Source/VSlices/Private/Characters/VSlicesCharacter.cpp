@@ -124,9 +124,10 @@ void AVSlicesCharacter::Jump()
 	if(bIsCrouched)
 		UnCrouch();
 	bCanJump = false;
+	if(GetVelocity().Length()<150.f) return;
+	
 	float CurrentJumpCooldown = JumpCooldownTime;
 	if(GetIsSprinting()) CurrentJumpCooldown *= 1.5f;
-	if(GetVelocity().Length()<150.f) return;
 	GetWorldTimerManager().SetTimer(
 		JumpCooldownTimerHandle,
 		this,
