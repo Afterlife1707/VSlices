@@ -13,6 +13,18 @@ enum class EVaultType : uint8
 	Climb_Tall UMETA(DisplayName = "Tall Climb")
 };
 
+USTRUCT()
+struct FVaultableObstacle
+{
+	GENERATED_BODY()
+	
+	FVector TopLocation;
+	FVector Normal;
+	float Height;
+	bool bIsWall;        // true = wall to vault over, false = platform to mantle
+	bool bIsThick;       // true = climb, false = vault
+};
+
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class VSLICES_API UVaultComponent : public UActorComponent
 {
@@ -25,7 +37,7 @@ class VSLICES_API UVaultComponent : public UActorComponent
 public:
 	UVaultComponent();
 
-	bool TryVault();
+	bool TryVault(const bool bWasSprinting);
 	bool IsVaulting() const { return bIsVaulting; }
 
 	UPROPERTY(EditDefaultsOnly, Category="Vaulting|Animations")
@@ -43,21 +55,19 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-	bool ForwardTrace(FTraceResult& OutHitResult
-	) const;
-	bool HeightTrace(const FTraceResult& ForwardHit, FVector& OutWallTop, float& OutWallHeight) const;
-	bool ThicknessTrace(const FTraceResult& ForwardHit, const FVector& WallTop) const;
-	void StartVault(const EVaultType VaultType, const FVector& TargetLocation, const FRotator& TargetRotation);
 	
 	//vault
-	UPROPERTY(EditAnywhere, Category="Vaulting|Settings")
-	float MinHeightForShortVault = 20.f;
-	UPROPERTY(EditAnywhere, Category="Vaulting|Settings")
+	UPROPERTY(EditAnywhere, Category="Vault")
+	float TraceDistance = 120.f;
+	UPROPERTY(EditAnywhere, Category="Vault")
+	float MinHeightForShortVault = 5.f;
+	UPROPERTY(EditAnywhere, Category="Vault")
 	float MaxHeightForShortVault = 50.f;
-	UPROPERTY(EditAnywhere, Category="Vaulting|Settings")
+	UPROPERTY(EditAnywhere, Category="Vault")
 	float MaxHeightForTraverse = 120.f;
-	UPROPERTY(EditAnywhere, Category="Vaulting|Settings")
+	UPROPERTY(EditAnywhere, Category="Vault")
 	float ThicknessForClimb = 60.f;
+	
 private:
 	UPROPERTY()
 	class AVSlicesCharacter* OwnerCharacter;
@@ -70,11 +80,32 @@ private:
 	FRotator VaultTargetRotation;
 	float VaultLerpAlpha = 0.f;
 	float VaultLerpTime = 0.8f;
+	float VaultArcPeak;
 	FTimerHandle VaultMoveTimerHandle;
 
 	//EVaultType VaultType;
 	bool bIsVaulting = false;
 	bool PerformTrace(FHitResult& OutHit, const FVector& Start, const FVector& End) const;
-	UPROPERTY()
-	float VaultArcPeak;
+
+	//cache
+	FCollisionQueryParams TraceParams;
+	FCollisionObjectQueryParams ObjectParams;
+	float CapsuleRadius = 0.f;
+	float CapsuleHalfHeight = 0.f;
+    
+	bool FindVaultableObstacle(FVaultableObstacle& OutObstacle, bool bWasSprinting) const;
+	bool AnalyzeObstacle(const FHitResult& Hit, FVaultableObstacle& OutObstacle) const;
+	bool FindWallTop(const FHitResult& WallHit, FVector& OutWallTop, float& OutHeight) const;
+	bool ValidateLandingSpace(const FVector& ObstacleTop) const;
+	bool ExecuteVault(const FVaultableObstacle& Obstacle);
+	void StartVault(const EVaultType VaultType, const FVector& TargetLocation, const FRotator& TargetRotation);
+	
+	void UpdateVaultMotion(const float DeltaTime) const;
+	void UpdateClimbMotion(const float DeltaTime) const;
+	float CalculateArcOffset() const;
+	
+	bool IsObstacleThick(const FHitResult& Hit, const FVector& WallTop) const;
+	
+	UAnimMontage* GetVaultMontage(const EVaultType VaultType) const;
+	void DrawTraceDebug(const FVector& Start, const FVector& End, bool bHit, const FVector& HitLocation) const;
 };

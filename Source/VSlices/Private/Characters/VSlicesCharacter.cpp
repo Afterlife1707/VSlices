@@ -28,7 +28,7 @@ AVSlicesCharacter::AVSlicesCharacter()
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
-	CameraBoom->SetupAttachment(GetMesh(), TEXT("head"));
+	CameraBoom->SetupAttachment(GetMesh(), TEXT("neck_02"));
 	CameraBoom->TargetArmLength = 0.f; 
 	CameraBoom->bUsePawnControlRotation = true; 
 
@@ -105,7 +105,7 @@ bool AVSlicesCharacter::CanJumpInternal_Implementation() const
 
 void AVSlicesCharacter::Jump() 
 {
-	if (VaultComponent && !VaultComponent->IsVaulting() && VaultComponent->TryVault())return;
+	if (VaultComponent && !VaultComponent->IsVaulting() && VaultComponent->TryVault(GetIsSprinting()))return;
 	if (!bCanJump) return;
 	
 	Super::Jump();

@@ -87,7 +87,7 @@ public:
 	FORCEINLINE float GetMaxCrouchSprintSpeed() const { return MaxCrouchSprintSpeed; }
 	
 	UFUNCTION(BlueprintCallable, Category = Movement)
-	FORCEINLINE bool GetIsSprinting() const { return SprintComponent ? true : false; }
+	FORCEINLINE bool GetIsSprinting() const { return SprintComponent->GetIsSprinting();}
 	UFUNCTION(BlueprintCallable, Category = Movement)
 	FORCEINLINE bool GetIsSliding() const { return SlideComponent ? SlideComponent->IsSliding() : false; }
 
