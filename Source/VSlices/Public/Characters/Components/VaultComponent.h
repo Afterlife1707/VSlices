@@ -56,6 +56,10 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	
+	UPROPERTY(EditAnywhere, Category="Vault|Tracing")
+	float MinTraceHeight = -40.0f;
+	UPROPERTY(EditAnywhere, Category="Vault|Tracing")
+	float MaxTraceHeight = 180.0f;
 	//vault
 	UPROPERTY(EditAnywhere, Category="Vault")
 	float TraceDistance = 120.f;
@@ -107,5 +111,5 @@ private:
 	bool IsObstacleThick(const FHitResult& Hit, const FVector& WallTop) const;
 	
 	UAnimMontage* GetVaultMontage(const EVaultType VaultType) const;
-	void DrawTraceDebug(const FVector& Start, const FVector& End, bool bHit, const FVector& HitLocation) const;
+	void DrawTraceDebug(const FVector& Start, const FVector& End, const bool bHit, const FVector& HitLocation) const;
 };

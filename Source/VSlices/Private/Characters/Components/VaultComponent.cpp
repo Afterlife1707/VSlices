@@ -39,18 +39,10 @@ void UVaultComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActor
 
     VaultLerpAlpha = FMath::Clamp(VaultLerpAlpha + DeltaTime / VaultLerpTime, 0.f, 1.f);
     
-    // Use function pointer or switch for cleaner vault type handling
-    switch (CurrentVaultType)
-    {
-        case EVaultType::Vault_Short:
-        case EVaultType::Vault_Tall:
-            UpdateVaultMotion(DeltaTime);
-            break;
-        case EVaultType::Climb_Short:
-        case EVaultType::Climb_Tall:
-            UpdateClimbMotion(DeltaTime);
-            break;
-    }
+    if(CurrentVaultType==EVaultType::Vault_Short || CurrentVaultType==EVaultType::Vault_Tall)
+        UpdateVaultMotion(DeltaTime);
+    else if(CurrentVaultType==EVaultType::Climb_Short || CurrentVaultType==EVaultType::Climb_Tall)
+        UpdateClimbMotion(DeltaTime);
 }
 
 void UVaultComponent::UpdateVaultMotion(const float DeltaTime) const
@@ -110,8 +102,6 @@ bool UVaultComponent::FindVaultableObstacle(FVaultableObstacle& OutObstacle, con
     const FVector ForwardVector = OwnerCharacter->GetActorForwardVector();
     const float CurrentTraceDistance = TraceDistance * (bWasSprinting ? 3.0f : 1.0f);
     
-    LOG_INFO("Trace distance: %f", CurrentTraceDistance);
-    
     // Find closest obstacle from multi-height traces
     FHitResult BestHit;
     float ClosestDistance = MAX_FLT;
@@ -119,7 +109,7 @@ bool UVaultComponent::FindVaultableObstacle(FVaultableObstacle& OutObstacle, con
     constexpr int32 NumTraces = 5;
     for (int32 i = 0; i < NumTraces; i++)
     {
-        const float HeightOffset = FMath::Lerp(-40.0f, 180.0f, i / static_cast<float>(NumTraces - 1));
+        const float HeightOffset = FMath::Lerp(MinTraceHeight, MaxTraceHeight, i / static_cast<float>(NumTraces - 1));
         const FVector Start = PlayerLocation + FVector(0, 0, HeightOffset);
         const FVector End = Start + ForwardVector * CurrentTraceDistance;
         
@@ -303,7 +293,7 @@ UAnimMontage* UVaultComponent::GetVaultMontage(const EVaultType VaultType) const
     }
 }
 
-void UVaultComponent::DrawTraceDebug(const FVector& Start, const FVector& End, bool bHit, const FVector& HitLocation) const
+void UVaultComponent::DrawTraceDebug(const FVector& Start, const FVector& End, const bool bHit, const FVector& HitLocation) const
 {
     DrawDebugLine(GetWorld(), Start, End, bHit ? FColor::Red : FColor::Green, false, 5.0f);
     if (bHit) DrawDebugSphere(GetWorld(), HitLocation, 5.0f, 8, FColor::Blue, false, 1.0f);

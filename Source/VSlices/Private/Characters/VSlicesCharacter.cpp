@@ -154,12 +154,14 @@ void AVSlicesCharacter::LaunchForward()
 
 void AVSlicesCharacter::StartSlide() const
 {
-	SlideComponent->StartSlide();
+	if(SlideComponent)
+		SlideComponent->StartSlide();
 }
 
 void AVSlicesCharacter::StopSlide() const
 {
-	SlideComponent->StopSlide();
+	if(SlideComponent)
+		SlideComponent->StopSlide();
 }
 
 void AVSlicesCharacter::ToggleCrouch()
@@ -173,7 +175,7 @@ void AVSlicesCharacter::ToggleCrouch()
 void AVSlicesCharacter::StartCrouch()
 {
 	Crouch();
-	if (GetIsSprinting())
+	if (SprintComponent && GetIsSprinting())
 		StartSlide(); 
 }
 
