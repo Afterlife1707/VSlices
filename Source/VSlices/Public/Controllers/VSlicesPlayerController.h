@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Characters/VSlicesCharacter.h"
 #include "GameFramework/PlayerController.h"
 #include "VSlicesPlayerController.generated.h"
 
@@ -33,6 +32,7 @@ class VSLICES_API AVSlicesPlayerController : public APlayerController
 	UInputAction* SprintAction;
 
 protected:
+	virtual void OnPossess(APawn* InPawn) override;
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
 	
@@ -47,5 +47,5 @@ protected:
 	
 private:
 	UPROPERTY()
-	AVSlicesCharacter* PlayerCharacter;
+	class AVSlicesCharacter* PlayerCharacter;
 };

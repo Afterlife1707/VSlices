@@ -1,10 +1,21 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "Controllers/VSlicesPlayerController.h"
-
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Characters/VSlicesCharacter.h"
+#include "LoggingMacros.h"
+
+void AVSlicesPlayerController::OnPossess(APawn* InPawn)
+{
+	Super::OnPossess(InPawn);
+    
+	PlayerCharacter = Cast<AVSlicesCharacter>(InPawn);
+	if (!PlayerCharacter)
+	{
+		LOG_ERROR("PlayerCharacter is null!");
+	}
+}
 
 void AVSlicesPlayerController::BeginPlay()
 {
@@ -13,11 +24,6 @@ void AVSlicesPlayerController::BeginPlay()
 	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
 	{
 		Subsystem->AddMappingContext(DefaultMappingContext, 0);
-	}
-	PlayerCharacter = Cast<AVSlicesCharacter>(GetCharacter());
-	if(!PlayerCharacter)
-	{
-		UE_LOG(LogTemp, Error, TEXT("PlayerCharacter is null!"));
 	}
 }
 
@@ -43,42 +49,35 @@ void AVSlicesPlayerController::SetupInputComponent()
 
 void AVSlicesPlayerController::Move(const FInputActionValue& Value)
 {
-	if (PlayerCharacter)
-		PlayerCharacter->Move(Value);
+	if (PlayerCharacter) PlayerCharacter->Move(Value);
 }
 
 void AVSlicesPlayerController::Look(const FInputActionValue& Value)
 {
-	if (PlayerCharacter)
-		PlayerCharacter->Look(Value);
+	if (PlayerCharacter) PlayerCharacter->Look(Value);
 }
 
 void AVSlicesPlayerController::JumpPressed()
 {
-	if (PlayerCharacter)
-		PlayerCharacter->Jump();
+	if (PlayerCharacter) PlayerCharacter->Jump();
 }
 
 void AVSlicesPlayerController::JumpReleased()
 {
-	if (PlayerCharacter)
-		PlayerCharacter->StopJumping();
+	if (PlayerCharacter) PlayerCharacter->StopJumping();
 }
 
 void AVSlicesPlayerController::Crouch()
 {
-	if (PlayerCharacter)
-		PlayerCharacter->ToggleCrouch();
+	if (PlayerCharacter) PlayerCharacter->ToggleCrouch();
 }
 
 void AVSlicesPlayerController::Sprint()
 {
-	if (PlayerCharacter && PlayerCharacter->GetSprintComponent())
-		PlayerCharacter->GetSprintComponent()->StartSprinting();
+	if (PlayerCharacter) PlayerCharacter->StartSprinting();
 }
 
 void AVSlicesPlayerController::UnSprint()
 {
-	if (PlayerCharacter && PlayerCharacter->GetSprintComponent())
-		PlayerCharacter->GetSprintComponent()->StopSprinting();
+	if (PlayerCharacter) PlayerCharacter->StopSprinting();
 }

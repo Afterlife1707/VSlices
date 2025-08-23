@@ -3,10 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/SlideComponent.h"
-#include "Components/SprintComponent.h"
 #include "GameFramework/Character.h"
-#include "Logging/LogMacros.h"
 #include "VSlicesCharacter.generated.h"
 
 struct FInputActionValue;
@@ -54,10 +51,12 @@ public:
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 
-	// Slide - delegated to component
+	// Slide
 	void StartSlide() const;
 	void StopSlide() const;
-
+	//sprint
+	void StartSprinting() const;
+	void StopSprinting() const;
 	// Crouch and jump
 	void ToggleCrouch();
 	void StartCrouch();
@@ -74,25 +73,25 @@ public:
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 	
-	FORCEINLINE USprintComponent* GetSprintComponent() const { return SprintComponent; }
-	FORCEINLINE USlideComponent* GetSlideComponent() const { return SlideComponent; }
-	FORCEINLINE USlopeComponent* GetSlopeComponent() const { return SlopeComponent; }
-	FORCEINLINE UVaultComponent* GetVaultComponent() const { return VaultComponent; }
-	
-	FORCEINLINE FSlopeInfo GetSlopeInfo() const { return SlopeComponent->GetSlopeInfo(); }
-	
+	USprintComponent* GetSprintComponent() const;
+	USlideComponent* GetSlideComponent() const;
+	USlopeComponent* GetSlopeComponent() const;
+	UVaultComponent* GetVaultComponent() const;
+	ULandingComponent* GetLandingComponent() const;
+
+	struct FSlopeInfo GetSlopeInfo() const;
+
 	FORCEINLINE float GetMaxJogSpeed() const { return MaxJogSpeed; }
 	FORCEINLINE float GetMaxCrouchJogSpeed() const { return MaxCrouchJogSpeed; }
 	FORCEINLINE float GetMaxSprintSpeed() const { return MaxSprintSpeed; }
 	FORCEINLINE float GetMaxCrouchSprintSpeed() const { return MaxCrouchSprintSpeed; }
 	
 	UFUNCTION(BlueprintCallable, Category = Movement)
-	FORCEINLINE bool GetIsSprinting() const { return SprintComponent->GetIsSprinting();}
+	bool GetIsSprinting() const;
 	UFUNCTION(BlueprintCallable, Category = Movement)
-	FORCEINLINE bool GetIsSliding() const { return SlideComponent ? SlideComponent->IsSliding() : false; }
+	bool GetIsSliding() const;
 
 private:
 	bool bCanJump = true;
 	FTimerHandle JumpCooldownTimerHandle;
-
 };

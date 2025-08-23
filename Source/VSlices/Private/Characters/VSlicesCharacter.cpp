@@ -55,6 +55,48 @@ void AVSlicesCharacter::Tick(float DeltaSeconds)
 		LandingComponent->HandleFallDetection();
 }
 
+#pragma region GETTERS
+USprintComponent* AVSlicesCharacter::GetSprintComponent() const
+{
+	return SprintComponent;
+}
+
+USlideComponent* AVSlicesCharacter::GetSlideComponent() const
+{
+	return SlideComponent;
+}
+
+USlopeComponent* AVSlicesCharacter::GetSlopeComponent() const
+{
+	return SlopeComponent;
+}
+
+UVaultComponent* AVSlicesCharacter::GetVaultComponent() const
+{
+	return VaultComponent;
+}
+
+ULandingComponent* AVSlicesCharacter::GetLandingComponent() const
+{
+	return LandingComponent;
+}
+
+FSlopeInfo AVSlicesCharacter::GetSlopeInfo() const
+{
+	return SlopeComponent->GetSlopeInfo();
+}
+
+bool AVSlicesCharacter::GetIsSprinting() const
+{
+	return SprintComponent->GetIsSprinting();
+}
+
+bool AVSlicesCharacter::GetIsSliding() const
+{
+	return SlideComponent ? SlideComponent->IsSliding() : false;
+}
+#pragma endregion
+
 void AVSlicesCharacter::Move(const FInputActionValue& Value)
 {
 	// input is a Vector2D
@@ -97,7 +139,48 @@ void AVSlicesCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
+#pragma region COMPONENTS
+
+void AVSlicesCharacter::StartSlide() const
+{
+	if(SlideComponent) SlideComponent->StartSlide();
+}
+
+void AVSlicesCharacter::StopSlide() const
+{
+	if(SlideComponent) SlideComponent->StopSlide();
+}
+
+void AVSlicesCharacter::StartSprinting() const
+{
+	if(SprintComponent) SprintComponent->StartSprinting();
+}
+
+void AVSlicesCharacter::StopSprinting() const
+{
+	if(SprintComponent) SprintComponent->StopSprinting();
+}
+
+void AVSlicesCharacter::ToggleCrouch()
+{
+	if (bIsCrouched) StopCrouch();
+	else StartCrouch();
+}
+
+void AVSlicesCharacter::StartCrouch()
+{
+	Crouch();
+	if (SprintComponent && GetIsSprinting())
+		StartSlide(); 
+}
+
+void AVSlicesCharacter::StopCrouch()
+{
+	UnCrouch();
+}
+
 #pragma region JUMP
+
 bool AVSlicesCharacter::CanJumpInternal_Implementation() const 
 {
 	return Super::CanJumpInternal_Implementation() || bIsCrouched;
@@ -152,34 +235,4 @@ void AVSlicesCharacter::LaunchForward()
 }
 #pragma endregion JUMP
 
-void AVSlicesCharacter::StartSlide() const
-{
-	if(SlideComponent)
-		SlideComponent->StartSlide();
-}
-
-void AVSlicesCharacter::StopSlide() const
-{
-	if(SlideComponent)
-		SlideComponent->StopSlide();
-}
-
-void AVSlicesCharacter::ToggleCrouch()
-{
-	if (bIsCrouched)
-		StopCrouch();
-	else
-		StartCrouch();
-}
-
-void AVSlicesCharacter::StartCrouch()
-{
-	Crouch();
-	if (SprintComponent && GetIsSprinting())
-		StartSlide(); 
-}
-
-void AVSlicesCharacter::StopCrouch()
-{
-	UnCrouch();
-}
+#pragma endregion COMPONENTS

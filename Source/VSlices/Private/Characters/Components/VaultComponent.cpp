@@ -122,7 +122,7 @@ bool UVaultComponent::FindVaultableObstacle(FVaultableObstacle& OutObstacle, con
                 BestHit = Hit;
             }
         }
-        DrawTraceDebug(Start, End, Hit.bBlockingHit, Hit.Location);
+        //DrawTraceDebug(Start, End, Hit.bBlockingHit, Hit.Location);
     }
     return BestHit.bBlockingHit && AnalyzeObstacle(BestHit, OutObstacle);
 }
@@ -144,7 +144,6 @@ bool UVaultComponent::AnalyzeObstacle(const FHitResult& Hit, FVaultableObstacle&
         ObstacleHeight = ObstacleTop.Z - OwnerCharacter->GetActorLocation().Z;
     }
     
-    // Early height validation
     if (ObstacleHeight < MinHeightForShortVault || ObstacleHeight > MaxHeightForTraverse)
     {
         LOG_INFO("Obstacle height %.2f outside valid range [%.2f - %.2f]", ObstacleHeight, MinHeightForShortVault, MaxHeightForTraverse);
@@ -157,7 +156,6 @@ bool UVaultComponent::AnalyzeObstacle(const FHitResult& Hit, FVaultableObstacle&
         return false;
     }
     
-    // Fill obstacle data
     OutObstacle = FVaultableObstacle{
         .TopLocation = ObstacleTop,
         .Normal = Hit.Normal,
@@ -166,7 +164,7 @@ bool UVaultComponent::AnalyzeObstacle(const FHitResult& Hit, FVaultableObstacle&
         .bIsThick = bIsWall ? IsObstacleThick(Hit, ObstacleTop) : false
     };
     
-    DrawDebugSphere(GetWorld(), ObstacleTop, 12.0f, 12, FColor::Purple, false, 2.0f);
+   // DrawDebugSphere(GetWorld(), ObstacleTop, 12.0f, 12, FColor::Purple, false, 2.0f);
     LOG_INFO("Found %s obstacle - Height: %.2f, Thick: %s", bIsWall ? TEXT("Wall") : TEXT("Platform"), ObstacleHeight, OutObstacle.bIsThick ? TEXT("Yes") : TEXT("No"));
     
     return true;
@@ -199,7 +197,7 @@ bool UVaultComponent::ValidateLandingSpace(const FVector& ObstacleTop) const
         TraceParams
     );
     
-    DrawDebugCapsule(GetWorld(), LandingPos, CapsuleHalfHeight, CapsuleRadius, FQuat::Identity, bHasSpace ? FColor::Green : FColor::Red, false, 1.5f);
+   // DrawDebugCapsule(GetWorld(), LandingPos, CapsuleHalfHeight, CapsuleRadius, FQuat::Identity, bHasSpace ? FColor::Green : FColor::Red, false, 1.5f);
     return bHasSpace;
 }
 
@@ -274,9 +272,8 @@ bool UVaultComponent::IsObstacleThick(const FHitResult& Hit, const FVector& Wall
     FHitResult ThicknessHit;
     const bool bIsThick = PerformTrace(ThicknessHit, Start, End);
     
-    DrawDebugLine(GetWorld(), Start, End, FColor::Green, false, 2.0f, 0, 2.0f);
-    if (bIsThick)
-        DrawDebugSphere(GetWorld(), ThicknessHit.Location, 12.0f, 12, FColor::Green, false, 2.0f);
+   // DrawDebugLine(GetWorld(), Start, End, FColor::Green, false, 2.0f, 0, 2.0f);
+   // if (bIsThick) DrawDebugSphere(GetWorld(), ThicknessHit.Location, 12.0f, 12, FColor::Green, false, 2.0f);
     
     return bIsThick;
 }
