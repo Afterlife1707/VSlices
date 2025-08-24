@@ -143,13 +143,14 @@ bool UVaultComponent::AnalyzeObstacle(const FHitResult& Hit, FVaultableObstacle&
         ObstacleTop = Hit.Location;
         ObstacleHeight = ObstacleTop.Z - OwnerCharacter->GetActorLocation().Z;
     }
-    
+    ObstacleHeight = FMath::Abs(ObstacleHeight);
     if (ObstacleHeight < MinHeightForShortVault || ObstacleHeight > MaxHeightForTraverse)
     {
         LOG_INFO("Obstacle height %.2f outside valid range [%.2f - %.2f]", ObstacleHeight, MinHeightForShortVault, MaxHeightForTraverse);
         return false;
     }
     
+    LOG_INFO("Obstacle height %.2f ", ObstacleHeight);
     if (!ValidateLandingSpace(ObstacleTop))
     {
         LOG_INFO("Failed landing space validation");
