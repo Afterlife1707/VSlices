@@ -13,6 +13,7 @@
 #include "Characters/Components/SlideComponent.h"
 #include "Characters/Components/SlopeComponent.h"
 #include "Characters/Components/VaultComponent.h"
+#include "Characters/Components/WallRunComponent.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -42,6 +43,7 @@ AVSlicesCharacter::AVSlicesCharacter()
 	SlopeComponent = CreateDefaultSubobject<USlopeComponent>(TEXT("Slope"));
 	LandingComponent = CreateDefaultSubobject<ULandingComponent>(TEXT("Landing"));
 	VaultComponent = CreateDefaultSubobject<UVaultComponent>(TEXT("Vault"));
+	WallRunComponent = CreateDefaultSubobject<UWallRunComponent>(TEXT("WallRun"));
 }
 
 void AVSlicesCharacter::Tick(float DeltaSeconds)
@@ -79,6 +81,11 @@ UVaultComponent* AVSlicesCharacter::GetVaultComponent() const
 ULandingComponent* AVSlicesCharacter::GetLandingComponent() const
 {
 	return LandingComponent;
+}
+
+UWallRunComponent* AVSlicesCharacter::GetWallRunComponent() const
+{
+	return WallRunComponent;
 }
 
 FSlopeInfo AVSlicesCharacter::GetSlopeInfo() const
@@ -234,5 +241,22 @@ void AVSlicesCharacter::LaunchForward()
 	LaunchCharacter(LaunchDir, true, false);
 }
 #pragma endregion JUMP
+
+void AVSlicesCharacter::NotifyHit(UPrimitiveComponent* MyComp, AActor* Other,UPrimitiveComponent* OtherComp, bool bSelfMoved,
+	FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit)
+{
+	Super::NotifyHit(MyComp, Other, OtherComp, bSelfMoved, HitLocation, HitNormal, NormalImpulse, Hit);
+    
+	if (WallRunComponent && Other && OtherComp)
+		WallRunComponent->TryWallRun(Hit, Other);
+}
+
+void AVSlicesCharacter::Landed(const FHitResult& Hit)
+{
+	Super::Landed(Hit);
+	
+	WallRunComponent->ResetWallRun();
+	WallRunComponent->StopWallRun();
+}
 
 #pragma endregion COMPONENTS

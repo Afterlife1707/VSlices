@@ -30,6 +30,8 @@ class AVSlicesCharacter : public ACharacter
 	class ULandingComponent* LandingComponent;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	class UVaultComponent* VaultComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
+	class UWallRunComponent* WallRunComponent;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	float JumpCooldownTime = 1.f;
@@ -68,6 +70,9 @@ public:
 
 protected:
 	virtual void Tick(float DeltaSeconds) override;
+	virtual void NotifyHit(UPrimitiveComponent* MyComp, AActor* Other, UPrimitiveComponent* OtherComp, bool bSelfMoved,
+	                       FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit) override;
+	virtual void Landed(const FHitResult& Hit) override;
 
 public:
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
@@ -78,6 +83,7 @@ public:
 	USlopeComponent* GetSlopeComponent() const;
 	UVaultComponent* GetVaultComponent() const;
 	ULandingComponent* GetLandingComponent() const;
+	UWallRunComponent* GetWallRunComponent() const;
 
 	struct FSlopeInfo GetSlopeInfo() const;
 
