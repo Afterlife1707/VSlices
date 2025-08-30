@@ -4,6 +4,12 @@
 #include "Components/ActorComponent.h"
 #include "WallRunComponent.generated.h"
 
+UENUM(BlueprintType)
+enum class EWallRunDir :uint8
+{
+	Left, Right, None
+};
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class VSLICES_API UWallRunComponent : public UActorComponent
 {
@@ -11,7 +17,7 @@ class VSLICES_API UWallRunComponent : public UActorComponent
 
 public:	
 	UWallRunComponent();
-
+	
 protected:
 	virtual void BeginPlay() override;
 
@@ -20,18 +26,24 @@ public:
 
 	void TryWallRun(const FHitResult& Hit);
 	void StartWallRun(const FVector& WallNormal);
-	void StopWallRun() const;
+	void StopWallRun();
 	void Jump();
-	FORCEINLINE void ResetWallRun() {bIsWallRunning = false;}
+	void ResetWallRun();
+	UFUNCTION(BlueprintCallable, Category="Wall Run")
 	FORCEINLINE bool IsWallRunning() const {return bIsWallRunning;}
+	UFUNCTION(BlueprintCallable, Category="Wall Run")
+	FORCEINLINE EWallRunDir GetWallRunDirection() const{return Direction;}
 private:
 	UPROPERTY()
 	class AVSlicesCharacter* OwnerCharacter;
 	UPROPERTY()
 	class UCharacterMovementComponent* MovementComp;
 	bool bIsWallRunning;
-	bool CheckForWall(const FHitResult& Hit) const;
+	float LastWallRunAttempt = 0.0f;
+	float WallRunAttemptCooldown = 0.1f;
+	bool CheckForWall(const FHitResult& Hit);
 	float DefaultGravityScale;
+	
 	UPROPERTY(EditDefaultsOnly, Category="Wall Run", meta=(AllowPrivateAccess))
 	float WallRunGravityScale = 0.5f;
 	UPROPERTY(EditDefaultsOnly, Category="Wall Run", meta=(AllowPrivateAccess))
@@ -39,9 +51,14 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category="Wall Run", meta=(AllowPrivateAccess))
 	float JumpForceMultiplier = 1.f;
 	UPROPERTY(EditDefaultsOnly, Category="Wall Run", meta=(AllowPrivateAccess))
+	float JumpHeightBoost = 100.f;
+	UPROPERTY(EditDefaultsOnly, Category="Wall Run", meta=(AllowPrivateAccess))
 	float MinWallHeight = 40.f;
+	UPROPERTY(EditDefaultsOnly, Category="Wall Run", meta=(AllowPrivateAccess))
+	float MinWallAngleDot = 0.6f;
 	UPROPERTY(EditDefaultsOnly, Category="Wall Run", meta=(AllowPrivateAccess))
 	float MinVelocity = 300.f;
 	
 	FTimerHandle WallRunTimerHandle;
+	EWallRunDir Direction = EWallRunDir::None;
 };
