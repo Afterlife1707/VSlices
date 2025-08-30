@@ -33,9 +33,14 @@ void UWallRunComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
+	if(bIsWallRunning)
+	{
+		if(OwnerCharacter->GetVelocity().Length()<MinVelocity)
+			StopWallRun();
+	}
 }
 
-void UWallRunComponent::TryWallRun(const FHitResult& Hit, AActor* Other)
+void UWallRunComponent::TryWallRun(const FHitResult& Hit)
 {
 	if(CheckForWall(Hit))
 		StartWallRun(Hit.Normal);
@@ -46,22 +51,39 @@ void UWallRunComponent::TryWallRun(const FHitResult& Hit, AActor* Other)
 bool UWallRunComponent::CheckForWall(const FHitResult& Hit) const
 {
 	const float Dot =  FMathf::Abs(FVector::DotProduct(Hit.Normal, OwnerCharacter->GetActorRightVector()));
-	return (Dot>=0.8f);
+	FFindFloorResult FloorHit;
+	MovementComp->FindFloor(OwnerCharacter->GetActorLocation(), FloorHit, true);
+	
+	return (MovementComp->IsFalling() && (FloorHit.FloorDist>MinWallHeight) && (Dot>=0.8f) && OwnerCharacter->GetVelocity().Length()>MinVelocity);
 }
 
 void UWallRunComponent::StartWallRun(const FVector& WallNormal)
 {
-	if(!MovementComp->IsFalling() || !bCanWallRun) return;
+	if(!MovementComp->IsFalling() || bIsWallRunning) return;
+
+	bIsWallRunning = true;
+	MovementComp->Velocity = FVector(MovementComp->Velocity.X, MovementComp->Velocity.Y, 0);
 	MovementComp->SetPlaneConstraintEnabled(true);
 	MovementComp->SetPlaneConstraintNormal(WallNormal);
 	MovementComp->GravityScale = WallRunGravityScale;
 	GetWorld()->GetTimerManager().SetTimer(WallRunTimerHandle, this, &UWallRunComponent::StopWallRun, WallRunTimer, false);
-	bCanWallRun = false;
 }
 
 void UWallRunComponent::StopWallRun() const
 {
 	MovementComp->SetPlaneConstraintEnabled(false);
 	MovementComp->GravityScale = DefaultGravityScale;
+}
+
+void UWallRunComponent::Jump()
+{
+	StopWallRun();
+	
+	const float JumpForce = OwnerCharacter->GetVelocity().Length() * JumpForceMultiplier;
+	const FVector JumpHeightBoost = FVector(0,0,OwnerCharacter->GetVelocity().Length());
+	const FVector DirLaunchVelocity = MovementComp->GetPlaneConstraintNormal()* JumpForce + JumpHeightBoost;
+	
+	OwnerCharacter->LaunchCharacter(DirLaunchVelocity, false, true);
+	bIsWallRunning = false;
 }
 

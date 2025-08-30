@@ -18,21 +18,30 @@ protected:
 public:	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	void TryWallRun(const FHitResult& Hit, AActor* Other);
+	void TryWallRun(const FHitResult& Hit);
 	void StartWallRun(const FVector& WallNormal);
 	void StopWallRun() const;
-	FORCEINLINE void ResetWallRun() {bCanWallRun = true;}
+	void Jump();
+	FORCEINLINE void ResetWallRun() {bIsWallRunning = false;}
+	FORCEINLINE bool IsWallRunning() const {return bIsWallRunning;}
 private:
 	UPROPERTY()
 	class AVSlicesCharacter* OwnerCharacter;
 	UPROPERTY()
 	class UCharacterMovementComponent* MovementComp;
-	bool bCanWallRun = true;
+	bool bIsWallRunning;
 	bool CheckForWall(const FHitResult& Hit) const;
 	float DefaultGravityScale;
 	UPROPERTY(EditDefaultsOnly, Category="Wall Run", meta=(AllowPrivateAccess))
 	float WallRunGravityScale = 0.5f;
 	UPROPERTY(EditDefaultsOnly, Category="Wall Run", meta=(AllowPrivateAccess))
 	float WallRunTimer = 0.75f;
+	UPROPERTY(EditDefaultsOnly, Category="Wall Run", meta=(AllowPrivateAccess))
+	float JumpForceMultiplier = 1.f;
+	UPROPERTY(EditDefaultsOnly, Category="Wall Run", meta=(AllowPrivateAccess))
+	float MinWallHeight = 40.f;
+	UPROPERTY(EditDefaultsOnly, Category="Wall Run", meta=(AllowPrivateAccess))
+	float MinVelocity = 300.f;
+	
 	FTimerHandle WallRunTimerHandle;
 };

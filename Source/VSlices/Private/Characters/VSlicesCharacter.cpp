@@ -195,6 +195,11 @@ bool AVSlicesCharacter::CanJumpInternal_Implementation() const
 
 void AVSlicesCharacter::Jump() 
 {
+	if (WallRunComponent->IsWallRunning())
+	{
+		WallRunComponent->Jump();
+		return;
+	}
 	if (VaultComponent && !VaultComponent->IsVaulting() && VaultComponent->TryVault(GetIsSprinting()))return;
 	if (!bCanJump) return;
 	
@@ -248,7 +253,7 @@ void AVSlicesCharacter::NotifyHit(UPrimitiveComponent* MyComp, AActor* Other,UPr
 	Super::NotifyHit(MyComp, Other, OtherComp, bSelfMoved, HitLocation, HitNormal, NormalImpulse, Hit);
     
 	if (WallRunComponent && Other && OtherComp)
-		WallRunComponent->TryWallRun(Hit, Other);
+		WallRunComponent->TryWallRun(Hit);
 }
 
 void AVSlicesCharacter::Landed(const FHitResult& Hit)
