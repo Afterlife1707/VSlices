@@ -7,13 +7,14 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/Controller.h"
 #include "InputActionValue.h"
-#include "LoggingMacros.h"
 #include "Characters/Components/LandingComponent.h"
+#include "Characters/Components/GrapplingHookComponent.h"
 #include "Characters/Components/SprintComponent.h"
 #include "Characters/Components/SlideComponent.h"
 #include "Characters/Components/SlopeComponent.h"
 #include "Characters/Components/VaultComponent.h"
 #include "Characters/Components/WallRunComponent.h"
+#include "CableComponent.h" 
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -44,6 +45,11 @@ AVSlicesCharacter::AVSlicesCharacter()
 	LandingComponent = CreateDefaultSubobject<ULandingComponent>(TEXT("Landing"));
 	VaultComponent = CreateDefaultSubobject<UVaultComponent>(TEXT("Vault"));
 	WallRunComponent = CreateDefaultSubobject<UWallRunComponent>(TEXT("WallRun"));
+	GrapplingHookComponent = CreateDefaultSubobject<UGrapplingHookComponent>(TEXT("GrapplingHook"));
+	
+	Cable = CreateDefaultSubobject<UCableComponent>(TEXT("GrappleCable"));
+	Cable->SetupAttachment(GetMesh());
+	Cable->SetVisibility(false);
 }
 
 void AVSlicesCharacter::Tick(float DeltaSeconds)
@@ -200,6 +206,8 @@ void AVSlicesCharacter::Jump()
 		WallRunComponent->Jump();
 		return;
 	}
+	//if(GrapplingHookComponent && GrapplingHookComponent->GetIsGrappling()) return;
+	
 	if (VaultComponent && !VaultComponent->IsVaulting() && VaultComponent->TryVault(GetIsSprinting()))return;
 	if (!bCanJump) return;
 	
@@ -207,13 +215,7 @@ void AVSlicesCharacter::Jump()
 	if (GetIsSprinting() && GetVelocity().Length()>=MaxJogSpeed)
 	{
 		FTimerHandle JumpTimerHandle;
-		GetWorld()->GetTimerManager().SetTimer(
-				JumpTimerHandle, 
-				this, 
-				&AVSlicesCharacter::LaunchForward, 
-				0.1f, 
-				false
-			);
+		GetWorld()->GetTimerManager().SetTimer(JumpTimerHandle, this, &AVSlicesCharacter::LaunchForward, 0.1f, false);
 	}
 	if(bIsCrouched)
 		UnCrouch();
@@ -221,13 +223,7 @@ void AVSlicesCharacter::Jump()
 	
 	float CurrentJumpCooldown = JumpCooldownTime;
 	if(GetIsSprinting()) CurrentJumpCooldown *= 1.5f;
-	GetWorldTimerManager().SetTimer(
-		JumpCooldownTimerHandle,
-		this,
-		&AVSlicesCharacter::ResetJumpCooldown,
-		CurrentJumpCooldown,
-		false
-	);
+	GetWorldTimerManager().SetTimer(JumpCooldownTimerHandle,this,&AVSlicesCharacter::ResetJumpCooldown, CurrentJumpCooldown,false);
 }
 
 void AVSlicesCharacter::ResetJumpCooldown()
@@ -245,13 +241,23 @@ void AVSlicesCharacter::LaunchForward()
 	const FVector LaunchDir = GetActorForwardVector() * LaunchBoost * SpeedMultiplier;
 	LaunchCharacter(LaunchDir, true, false);
 }
+
+void AVSlicesCharacter::ShootGrapplingHook()
+{
+	GrapplingHookComponent->TryShoot();
+}
 #pragma endregion JUMP
 
 void AVSlicesCharacter::NotifyHit(UPrimitiveComponent* MyComp, AActor* Other,UPrimitiveComponent* OtherComp, bool bSelfMoved,
 	FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit)
 {
 	Super::NotifyHit(MyComp, Other, OtherComp, bSelfMoved, HitLocation, HitNormal, NormalImpulse, Hit);
-    
+
+	if(!OtherComp->IsSimulatingPhysics() && GrapplingHookComponent && GrapplingHookComponent->GetIsGrappling() && GrapplingHookComponent->ShouldBoost())
+	{
+		LaunchCharacter(FVector(0,0,1000), true, true);
+		GrapplingHookComponent->ReleaseGrapple();
+	}
 	if (WallRunComponent && Other && OtherComp)
 		WallRunComponent->TryWallRun(Hit);
 }

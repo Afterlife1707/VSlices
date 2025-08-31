@@ -32,6 +32,10 @@ class AVSlicesCharacter : public ACharacter
 	class UVaultComponent* VaultComponent;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	class UWallRunComponent* WallRunComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
+	class UGrapplingHookComponent* GrapplingHookComponent;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="GrapplingGun", meta = (AllowPrivateAccess = "true"))
+	class UCableComponent* Cable;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	float JumpCooldownTime = 1.f;
@@ -67,6 +71,8 @@ public:
 	virtual void Jump() override;
 	void ResetJumpCooldown();
 	void LaunchForward();
+	//Grappling Hook
+	void ShootGrapplingHook();
 
 protected:
 	virtual void Tick(float DeltaSeconds) override;
@@ -91,6 +97,8 @@ public:
 	FORCEINLINE float GetMaxCrouchJogSpeed() const { return MaxCrouchJogSpeed; }
 	FORCEINLINE float GetMaxSprintSpeed() const { return MaxSprintSpeed; }
 	FORCEINLINE float GetMaxCrouchSprintSpeed() const { return MaxCrouchSprintSpeed; }
+	
+	FORCEINLINE UCableComponent* GetCable() const { return Cable; }
 	
 	UFUNCTION(BlueprintCallable, Category = Movement)
 	bool GetIsSprinting() const;

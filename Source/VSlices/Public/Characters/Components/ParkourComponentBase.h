@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "LoggingMacros.h"
+#include "LoggingMacros.h" //for child classes
 #include "GameFramework/CharacterMovementComponent.h"
 #include "ParkourComponentBase.generated.h"
 
