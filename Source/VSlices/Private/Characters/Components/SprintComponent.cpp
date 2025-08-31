@@ -1,36 +1,25 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "Characters/Components/SprintComponent.h"
-#include "LoggingMacros.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Characters/VSlicesCharacter.h" 
 
 USprintComponent::USprintComponent()
 {
-    PrimaryComponentTick.bCanEverTick = false;
 }
 
 void USprintComponent::BeginPlay()
 {
     Super::BeginPlay();
-    
-    OwnerCharacter = Cast<AVSlicesCharacter>(GetOwner());
-    if (OwnerCharacter)
+  
+    if (MovementComponent)
     {
-        MovementComponent = OwnerCharacter->GetCharacterMovement();
-        if (MovementComponent)
-        {
-            MovementComponent->MaxWalkSpeed = OwnerCharacter->GetMaxJogSpeed();
-            MovementComponent->MaxWalkSpeedCrouched = OwnerCharacter->GetMaxCrouchJogSpeed();
-        }
-        else
-        {
-            LOG_ERROR("Invalid Movement Component");
-        }
+        MovementComponent->MaxWalkSpeed = OwnerCharacter->GetMaxJogSpeed();
+        MovementComponent->MaxWalkSpeedCrouched = OwnerCharacter->GetMaxCrouchJogSpeed();
     }
     else
     {
-        LOG_ERROR("SprintComponent: Owner is not a Character!");
+        LOG_ERROR("Invalid Movement Component");
     }
 }
 
@@ -81,13 +70,7 @@ void USprintComponent::StartSprintCooldown()
     if (SprintCooldownDuration > 0.0f)
     {
         bSprintOnCooldown = true;
-        GetWorld()->GetTimerManager().SetTimer(
-            SprintCooldownTimerHandle,
-            this,
-            &USprintComponent::EndSprintCooldown,
-            SprintCooldownDuration,
-            false
-        );
+        GetWorld()->GetTimerManager().SetTimer(SprintCooldownTimerHandle,this,&USprintComponent::EndSprintCooldown,SprintCooldownDuration,false);
     }
 }
 

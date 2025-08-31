@@ -1,7 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "Characters/Components/SlideComponent.h"
-#include "LoggingMacros.h"
 #include "Characters/VSlicesCharacter.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -9,26 +8,6 @@
 
 USlideComponent::USlideComponent()
 {
-    PrimaryComponentTick.bCanEverTick = false;
-}
-
-void USlideComponent::BeginPlay()
-{
-    Super::BeginPlay();
-    
-    OwnerCharacter = Cast<AVSlicesCharacter>(GetOwner());
-    if (OwnerCharacter)
-    {
-        MovementComponent = OwnerCharacter->GetCharacterMovement();
-        if (MovementComponent)
-        {
-            CachedCrouchSpeed = MovementComponent->MaxWalkSpeedCrouched;
-        }
-    }
-    else
-    {
-        LOG_ERROR("SlideComponent: Owner is not a Character!");
-    }
 }
 
 void USlideComponent::StartSlide()

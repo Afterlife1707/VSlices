@@ -1,25 +1,12 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "Characters/Components/SlopeComponent.h"
-#include "LoggingMacros.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Characters/VSlicesCharacter.h" 
 #include "Logging/LogMacros.h"
 
 USlopeComponent::USlopeComponent()
 {
-	PrimaryComponentTick.bCanEverTick = false;
-}
-
-void USlopeComponent::BeginPlay()
-{
-	Super::BeginPlay();
-	
-	OwnerCharacter = Cast<AVSlicesCharacter>(GetOwner());
-	if (OwnerCharacter)
-		MovementComponent = OwnerCharacter->GetCharacterMovement();
-	else
-		LOG_ERROR("SlopeComponent: Owner is not a Character!");
 }
 
 void USlopeComponent::ApplySlopeRestrictions(FVector2D& MovementVector)
@@ -38,7 +25,6 @@ void USlopeComponent::ApplySlopeRestrictions(FVector2D& MovementVector)
     const bool bMovingForward = MovementVector.Y > 0.001f;
     const bool bMovingBackward = MovementVector.Y < -0.001f;
     
-    // Restrict uphill movement on steep slopes
     if (bMovingForward && CurrentSlopeInfo.bIsUphill)
     {
         if (CurrentSlopeInfo.SlopeAngle > MaxWalkableUphillAngle)
@@ -54,12 +40,8 @@ void USlopeComponent::ApplySlopeRestrictions(FVector2D& MovementVector)
         }
     }
     
-    // Restrict steep downhill movement when moving backward
     if (bMovingBackward && CurrentSlopeInfo.bIsDownhill && CurrentSlopeInfo.SlopeAngle > MaxWalkableDownhillAngle)
-    {
-        //LOG_WARNING("Blocking downhill backward movement - too steep: %.1f degrees", CurrentSlopeInfo.SlopeAngle);
         MovementVector.Y = 0.0f;
-    }
 }
 
 FSlopeInfo USlopeComponent::GetSlopeInfo() 
@@ -91,7 +73,6 @@ void USlopeComponent::UpdateSlopeInfo()
         return;
     }
     
-    // Calculate slope angle
     const FVector FloorNormal = FloorHit.ImpactNormal;
     const float FloorDotUp = FVector::DotProduct(FloorNormal, FVector::UpVector);
     CachedSlopeInfo.SlopeAngle = FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(FloorDotUp, 0.0f, 1.0f)));
@@ -106,7 +87,6 @@ void USlopeComponent::UpdateSlopeInfo()
     
     CachedSlopeInfo.bIsOnSlope = true;
     
-    // Calculate slope direction and character alignment
     const FVector SlopeDirection = FVector::CrossProduct(FloorNormal, 
         FVector::CrossProduct(FloorNormal, FVector::UpVector)).GetSafeNormal();
     CachedSlopeInfo.FacingAlignment = FVector::DotProduct(OwnerCharacter->GetActorForwardVector(), SlopeDirection);
@@ -114,6 +94,4 @@ void USlopeComponent::UpdateSlopeInfo()
     // Determine uphill/downhill
     CachedSlopeInfo.bIsUphill = CachedSlopeInfo.FacingAlignment < -UphillThreshold;
     CachedSlopeInfo.bIsDownhill = CachedSlopeInfo.FacingAlignment > DownhillThreshold;
-    
-    //LOG_INFO("Facing alignment: %.3f, Uphill: %s, Downhill: %s", CachedSlopeInfo.FacingAlignment,CachedSlopeInfo.bIsUphill ? TEXT("Yes") : TEXT("No") CachedSlopeInfo.bIsDownhill ? TEXT("Yes") : TEXT("No"));
 }

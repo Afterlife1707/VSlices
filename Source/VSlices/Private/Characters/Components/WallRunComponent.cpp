@@ -2,8 +2,6 @@
 
 
 #include "Characters/Components/WallRunComponent.h"
-#include "LoggingMacros.h"
-#include "VectorTypes.h"
 #include "Characters/VSlicesCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
@@ -13,28 +11,18 @@ UWallRunComponent::UWallRunComponent()
 	PrimaryComponentTick.TickInterval = 0.1f;
 }
 
-
 void UWallRunComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	OwnerCharacter = Cast<AVSlicesCharacter>(GetOwner());
-	if (!OwnerCharacter)
-	{
-		LOG_ERROR("VaultComponent: Owner is not a VSlicesCharacter!");
-		return;
-	}
-    
-    MovementComp = OwnerCharacter->GetCharacterMovement();
-	DefaultGravityScale = MovementComp->GravityScale;
+	DefaultGravityScale = MovementComponent->GravityScale;
 }
 
 void UWallRunComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	
-	if (!bIsWallRunning || !IsValid(OwnerCharacter)) 
-		return;
+	if (!bIsWallRunning || !IsValid(OwnerCharacter)) return;
+	
 	const FVector CurrentVelocity = OwnerCharacter->GetVelocity();
 	const float HorizontalSpeed = FVector2D(CurrentVelocity.X, CurrentVelocity.Y).Size();
 	if (HorizontalSpeed < MinVelocity)
@@ -57,7 +45,7 @@ void UWallRunComponent::TryWallRun(const FHitResult& Hit)
 
 bool UWallRunComponent::CheckForWall(const FHitResult& Hit) 
 {
-	if(!MovementComp->IsFalling()) return false;
+	if(!MovementComponent->IsFalling()) return false;
 	
 	const FVector CurrentVelocity = OwnerCharacter->GetVelocity();
 	const float HorizontalSpeed = FVector2D(CurrentVelocity.X, CurrentVelocity.Y).Size();
@@ -71,22 +59,22 @@ bool UWallRunComponent::CheckForWall(const FHitResult& Hit)
 		return false;
 
 	FFindFloorResult FloorResult;
-	MovementComp->FindFloor(OwnerCharacter->GetActorLocation(), FloorResult, true);
+	MovementComponent->FindFloor(OwnerCharacter->GetActorLocation(), FloorResult, true);
     
 	return FloorResult.FloorDist > MinWallHeight;
 }
 
 void UWallRunComponent::StartWallRun(const FVector& WallNormal)
 {
-	if(!MovementComp->IsFalling() || bIsWallRunning) return;
+	if(!MovementComponent->IsFalling() || bIsWallRunning) return;
 
 	bIsWallRunning = true;
-	FVector NewVelocity = MovementComp->Velocity;
+	FVector NewVelocity = MovementComponent->Velocity;
 	NewVelocity.Z = FMath::Max(0.0f, NewVelocity.Z * 0.5f); // Reduce but don't eliminate upward velocity
-	MovementComp->Velocity = NewVelocity;
-	MovementComp->SetPlaneConstraintEnabled(true);
-	MovementComp->SetPlaneConstraintNormal(WallNormal);
-	MovementComp->GravityScale = WallRunGravityScale;
+	MovementComponent->Velocity = NewVelocity;
+	MovementComponent->SetPlaneConstraintEnabled(true);
+	MovementComponent->SetPlaneConstraintNormal(WallNormal);
+	MovementComponent->GravityScale = WallRunGravityScale;
 	
 	GetWorld()->GetTimerManager().SetTimer(WallRunTimerHandle, this, &UWallRunComponent::StopWallRun, WallRunTimer, false);
 }
@@ -94,8 +82,8 @@ void UWallRunComponent::StartWallRun(const FVector& WallNormal)
 void UWallRunComponent::StopWallRun()
 {
 	GetWorld()->GetTimerManager().ClearTimer(WallRunTimerHandle);
-	MovementComp->SetPlaneConstraintEnabled(false);
-	MovementComp->GravityScale = DefaultGravityScale;
+	MovementComponent->SetPlaneConstraintEnabled(false);
+	MovementComponent->GravityScale = DefaultGravityScale;
 }
 
 void UWallRunComponent::Jump()
@@ -103,7 +91,7 @@ void UWallRunComponent::Jump()
 	StopWallRun();
 	
 	const float JumpForce = OwnerCharacter->GetVelocity().Length() * JumpForceMultiplier;
-	const FVector DirLaunchVelocity = MovementComp->GetPlaneConstraintNormal()* JumpForce + JumpHeightBoost;
+	const FVector DirLaunchVelocity = MovementComponent->GetPlaneConstraintNormal()* JumpForce + JumpHeightBoost;
 	
 	OwnerCharacter->LaunchCharacter(DirLaunchVelocity, false, true);
 	bIsWallRunning = false;

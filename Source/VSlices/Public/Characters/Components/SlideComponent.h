@@ -13,7 +13,7 @@ class UCharacterMovementComponent;
 class USlopeComponent;
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class VSLICES_API USlideComponent : public UActorComponent
+class VSLICES_API USlideComponent : public UParkourComponentBase
 {
 	GENERATED_BODY()
 
@@ -33,8 +33,6 @@ public:
 	void HandleSlideTick(float DeltaSeconds);
 
 protected:
-	virtual void BeginPlay() override;
-
 	// Slide settings
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Slide")
 	float SlideDuration = 0.75f;
@@ -54,11 +52,6 @@ protected:
 	float MinSlideSpeed = 100.0f;
 
 private:
-	UPROPERTY()
-	AVSlicesCharacter* OwnerCharacter = nullptr;
-	UPROPERTY()
-	UCharacterMovementComponent* MovementComponent = nullptr;
-
 	bool bIsSliding = false;
 	float SlideElapsed = 0.0f;
 	float ActualSlideDuration = 0.0f;

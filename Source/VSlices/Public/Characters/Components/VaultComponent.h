@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "ParkourComponentBase.h"
 #include "Components/ActorComponent.h"
 #include "VaultComponent.generated.h"
 
@@ -26,7 +27,7 @@ struct FVaultableObstacle
 };
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class VSLICES_API UVaultComponent : public UActorComponent
+class VSLICES_API UVaultComponent : public UParkourComponentBase
 {
 	GENERATED_BODY()
 	struct FTraceResult
@@ -73,11 +74,6 @@ protected:
 	float ThicknessForClimb = 60.f;
 	
 private:
-	UPROPERTY()
-	class AVSlicesCharacter* OwnerCharacter;
-	UPROPERTY()
-	class UCharacterMovementComponent* MovementComp;
-	
 	FVector VaultStartLocation;
 	FVector VaultTargetLocation;
 	FRotator VaultStartRotation;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ParkourComponentBase.h"
 #include "Components/ActorComponent.h"
 #include "WallRunComponent.generated.h"
 
@@ -11,7 +12,7 @@ enum class EWallRunDir :uint8
 };
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class VSLICES_API UWallRunComponent : public UActorComponent
+class VSLICES_API UWallRunComponent : public UParkourComponentBase
 {
 	GENERATED_BODY()
 
@@ -33,11 +34,8 @@ public:
 	FORCEINLINE bool IsWallRunning() const {return bIsWallRunning;}
 	UFUNCTION(BlueprintCallable, Category="Wall Run")
 	FORCEINLINE EWallRunDir GetWallRunDirection() const{return Direction;}
+	
 private:
-	UPROPERTY()
-	class AVSlicesCharacter* OwnerCharacter;
-	UPROPERTY()
-	class UCharacterMovementComponent* MovementComp;
 	bool bIsWallRunning;
 	float LastWallRunAttempt = 0.0f;
 	float WallRunAttemptCooldown = 0.1f;

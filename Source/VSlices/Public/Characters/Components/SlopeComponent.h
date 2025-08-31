@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ParkourComponentBase.h"
 #include "Components/ActorComponent.h"
 #include "SlopeComponent.generated.h"
 
@@ -28,7 +29,7 @@ struct FSlopeInfo
 };
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class VSLICES_API USlopeComponent : public UActorComponent
+class VSLICES_API USlopeComponent : public UParkourComponentBase
 {
 	GENERATED_BODY()
 
@@ -41,8 +42,6 @@ public:
 	void ApplySlopeRestrictions(FVector2D& MovementVector);
 
 protected:
-	virtual void BeginPlay() override;
-
 	// Slope settings
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Slope", meta = (ClampMin = "25.0", ClampMax = "50.0"))
 	float MinSlopeSpeedDecreaseAngle = 25.0f;
@@ -62,11 +61,6 @@ protected:
 	float SlopeUpdateInterval = 0.1f;
 
 private:
-	UPROPERTY()
-	AVSlicesCharacter* OwnerCharacter;
-	UPROPERTY()
-	UCharacterMovementComponent* MovementComponent;
-
 	FSlopeInfo CachedSlopeInfo;
 	float LastSlopeUpdateTime = 0.0f;
 	

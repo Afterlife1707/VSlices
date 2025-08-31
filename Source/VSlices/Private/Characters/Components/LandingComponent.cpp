@@ -1,7 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "Characters/Components/LandingComponent.h"
-#include "LoggingMacros.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Animation/AnimMontage.h"
@@ -12,24 +11,12 @@ ULandingComponent::ULandingComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-void ULandingComponent::BeginPlay()
-{
-	Super::BeginPlay();
-	
-	OwnerCharacter = Cast<AVSlicesCharacter>(GetOwner());
-	MovementComp = OwnerCharacter->GetCharacterMovement();
-	if (!OwnerCharacter)
-	{
-		LOG_ERROR("LandingComponent: Owner is not a Character!");
-	}
-}
-
 void ULandingComponent::HandleFallDetection()
 {
-	if (!OwnerCharacter || !MovementComp)
+	if (!OwnerCharacter || !MovementComponent)
 		return;
 
-	if (!bWasFalling && MovementComp->IsFalling())
+	if (!bWasFalling && MovementComponent->IsFalling())
 	{
 		// Just started falling
 		bWasFalling = true;
@@ -37,7 +24,7 @@ void ULandingComponent::HandleFallDetection()
 		FallStartZ = OwnerCharacter->GetActorLocation().Z;
 	}
 
-	if (bWasFalling && !MovementComp->IsFalling())
+	if (bWasFalling && !MovementComponent->IsFalling())
 	{
 		// Just landed
 		bWasFalling = false;
@@ -56,7 +43,7 @@ void ULandingComponent::HandleLanding(const float FallDistance) const
     
 	if (FallDistance >= HardLandingMinFallDistance)
 	{
-		MovementComp->DisableMovement();
+		MovementComponent->DisableMovement();
 		OwnerCharacter->PlayAnimMontage(HardLandAnim);
 	}
 	else if (FallDistance >= RollMinFallDistance && LastVelocity >= MaxJogSpeed - 50.f)

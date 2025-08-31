@@ -1,7 +1,5 @@
 ﻿#include "Characters/Components/VaultComponent.h"
-#include "LoggingMacros.h"
 #include "Characters/VSlicesCharacter.h"
-#include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "DrawDebugHelpers.h"
 
@@ -16,16 +14,8 @@ UVaultComponent::UVaultComponent()
 void UVaultComponent::BeginPlay()
 {
     Super::BeginPlay();
-    OwnerCharacter = Cast<AVSlicesCharacter>(GetOwner());
-    if (!OwnerCharacter)
-    {
-        LOG_ERROR("VaultComponent: Owner is not a VSlicesCharacter!");
-        return;
-    }
     
-    MovementComp = OwnerCharacter->GetCharacterMovement();
     TraceParams.AddIgnoredActor(OwnerCharacter);
-    
     CapsuleRadius = OwnerCharacter->GetCapsuleComponent()->GetScaledCapsuleRadius();
     CapsuleHalfHeight = OwnerCharacter->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
 }
@@ -59,7 +49,7 @@ void UVaultComponent::UpdateVaultMotion(const float DeltaTime) const
 
 void UVaultComponent::UpdateClimbMotion(const float DeltaTime) const
 {
-    MovementComp->Velocity = FVector::ZeroVector;
+    MovementComponent->Velocity = FVector::ZeroVector;
     
     // Early termination for final position
     if (VaultLerpAlpha >= 0.9f)
@@ -89,7 +79,7 @@ float UVaultComponent::CalculateArcOffset() const
 
 bool UVaultComponent::TryVault(const bool bWasSprinting)
 {
-    if (!OwnerCharacter || bIsVaulting || !MovementComp->IsMovingOnGround())
+    if (!OwnerCharacter || bIsVaulting || !MovementComponent->IsMovingOnGround())
         return false;
         
     FVaultableObstacle Obstacle;
@@ -243,8 +233,8 @@ void UVaultComponent::StartVault(const EVaultType VaultType, const FVector& Targ
     VaultLerpAlpha = 0.f;
 
     OwnerCharacter->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-    MovementComp->SetMovementMode(MOVE_Flying);
-    MovementComp->Velocity = FVector::ZeroVector;
+    MovementComponent->SetMovementMode(MOVE_Flying);
+    MovementComponent->Velocity = FVector::ZeroVector;
     
     // Get animation montage and set lerp time
     if (UAnimMontage* MontageToPlay = GetVaultMontage(VaultType))
@@ -262,7 +252,7 @@ void UVaultComponent::FinishVault()
     VaultLerpAlpha = 0.f;
     
     OwnerCharacter->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-    MovementComp->SetMovementMode(MOVE_Walking);
+    MovementComponent->SetMovementMode(MOVE_Walking);
 }
 
 bool UVaultComponent::IsObstacleThick(const FHitResult& Hit, const FVector& WallTop) const

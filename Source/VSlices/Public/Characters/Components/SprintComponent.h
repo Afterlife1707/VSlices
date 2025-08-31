@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ParkourComponentBase.h"
 #include "Components/ActorComponent.h"
 #include "SprintComponent.generated.h"
 
@@ -12,7 +13,7 @@ class UCharacterMovementComponent;
 struct FSlopeInfo;
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class VSLICES_API USprintComponent : public UActorComponent
+class VSLICES_API USprintComponent : public UParkourComponentBase
 {
 	GENERATED_BODY()
 
@@ -45,11 +46,6 @@ private:
 	bool bSprintOnCooldown = false;
 	
 	FTimerHandle SprintCooldownTimerHandle;
-	
-	UPROPERTY()
-	AVSlicesCharacter* OwnerCharacter = nullptr;
-	UPROPERTY()
-	UCharacterMovementComponent* MovementComponent = nullptr;
 
 	void StartSprintCooldown();
 	UFUNCTION()

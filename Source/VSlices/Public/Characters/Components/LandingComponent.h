@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ParkourComponentBase.h"
 #include "Components/ActorComponent.h"
 #include "LandingComponent.generated.h"
 
@@ -12,26 +13,18 @@ class USprintComponent;
 class UAnimMontage;
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class VSLICES_API ULandingComponent : public UActorComponent
+class VSLICES_API ULandingComponent : public UParkourComponentBase
 {
     GENERATED_BODY()
 
 public:	
     ULandingComponent();
 
-protected:
-    virtual void BeginPlay() override;
-
-public:
     // Called from character's Tick
     void HandleFallDetection();
     void HandleLanding(float FallDistance) const;
 
 private:
-    UPROPERTY()
-    AVSlicesCharacter* OwnerCharacter;
-    UPROPERTY()
-    UCharacterMovementComponent* MovementComp;
     float FallStartZ = 0.f;
     bool bWasFalling = false;
     float LastVelocity = 0.f;
