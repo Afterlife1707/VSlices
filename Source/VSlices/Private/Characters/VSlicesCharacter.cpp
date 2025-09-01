@@ -48,7 +48,7 @@ AVSlicesCharacter::AVSlicesCharacter()
 	GrapplingHookComponent = CreateDefaultSubobject<UGrapplingHookComponent>(TEXT("GrapplingHook"));
 	
 	Cable = CreateDefaultSubobject<UCableComponent>(TEXT("GrappleCable"));
-	Cable->SetupAttachment(GetMesh());
+	Cable->SetupAttachment(GetMesh(), TEXT("hand_r"));
 	Cable->SetVisibility(false);
 }
 
@@ -242,10 +242,11 @@ void AVSlicesCharacter::LaunchForward()
 	LaunchCharacter(LaunchDir, true, false);
 }
 
-void AVSlicesCharacter::ShootGrapplingHook()
+void AVSlicesCharacter::ShootGrapplingHook() const
 {
 	GrapplingHookComponent->TryShoot();
 }
+
 #pragma endregion JUMP
 
 void AVSlicesCharacter::NotifyHit(UPrimitiveComponent* MyComp, AActor* Other,UPrimitiveComponent* OtherComp, bool bSelfMoved,
@@ -255,8 +256,7 @@ void AVSlicesCharacter::NotifyHit(UPrimitiveComponent* MyComp, AActor* Other,UPr
 
 	if(!OtherComp->IsSimulatingPhysics() && GrapplingHookComponent && GrapplingHookComponent->GetIsGrappling() && GrapplingHookComponent->ShouldBoost())
 	{
-		LaunchCharacter(FVector(0,0,1000), true, true);
-		GrapplingHookComponent->ReleaseGrapple();
+		GrapplingHookComponent->ClimbAtEnd();
 	}
 	if (WallRunComponent && Other && OtherComp)
 		WallRunComponent->TryWallRun(Hit);

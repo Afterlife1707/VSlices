@@ -72,7 +72,7 @@ public:
 	void ResetJumpCooldown();
 	void LaunchForward();
 	//Grappling Hook
-	void ShootGrapplingHook();
+	void ShootGrapplingHook() const;
 
 protected:
 	virtual void Tick(float DeltaSeconds) override;

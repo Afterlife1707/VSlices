@@ -2,150 +2,154 @@
 #include "CableComponent.h"
 #include "Characters/VSlicesCharacter.h"
 #include "Engine/Engine.h"
-#include "DrawDebugHelpers.h"
+#include "Components/CapsuleComponent.h"
 
 UGrapplingHookComponent::UGrapplingHookComponent()
 {
-	PrimaryComponentTick.bCanEverTick = true;
+    PrimaryComponentTick.bCanEverTick = true;
 }
 
+void UGrapplingHookComponent::BeginPlay()
+{
+    Super::BeginPlay();
+    
+	CurrentCooldown = GrappleCooldown;
+	OriginalCapsuleHalfHeight = OwnerCharacter->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+}
 
 void UGrapplingHookComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+    Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+    if (!bIsGrappling || CurrentCooldown <= 0.0f)
+        return;
+
+    CurrentCooldown -= DeltaTime;
+    const FVector ToTarget = GrappleLocation - OwnerCharacter->GetActorLocation();
+    Distance = ToTarget.Length();
     
-	if (bIsGrappling)
-	{
-		UpdateGrappleMovement(DeltaTime);
-		UpdateCableVisuals(DeltaTime);
-	}
+    // Apply continuous pulling force
+    const FVector PullDirection = ToTarget.GetSafeNormal();
+    const float PullStrength = CalculatePullStrength(ToTarget);
+    const FVector PullForce = PullDirection * PullStrength * DeltaTime;
+    MovementComponent->AddImpulse(PullForce, true);
+    
+    // Apply anti-gravity for horizontal grapples
+    if (ShouldApplyAntiGravity(ToTarget))
+    {
+        MovementComponent->AddImpulse(FVector(0, 0, HorizontalAntiGravityForce * DeltaTime), true);
+    }
+    
+    // Check release conditions
+    if (CurrentCooldown <= 0.0f || Distance < ReleaseDistance)
+    {
+        CurrentCooldown = GrappleCooldown;
+        ReleaseGrapple();
+    }
+    
+    UpdateCableVisuals(DeltaTime);
 }
 
 void UGrapplingHookComponent::TryShoot()
 {
-	if (bIsGrappling)
-	{
-		ReleaseGrapple();
-		return;
-	}
+    if (bIsGrappling)
+    {
+        ReleaseGrapple();
+        return;
+    }
     
-	FVector Start, End;
-	if (const APlayerController* PC = Cast<APlayerController>(OwnerCharacter->GetController()))
-	{
-		FVector CameraLocation;
-		FRotator CameraRotation;
-		PC->GetPlayerViewPoint(CameraLocation, CameraRotation);
-        
-		Start = CameraLocation;
-		End = Start + CameraRotation.Vector() * Range;
-	}
+    const APlayerController* PC = Cast<APlayerController>(OwnerCharacter->GetController());
+    if (!PC) return;
     
-	FCollisionQueryParams TraceParams;
-	TraceParams.AddIgnoredActor(OwnerCharacter);
+    FVector CameraLocation;
+    FRotator CameraRotation;
+    PC->GetPlayerViewPoint(CameraLocation, CameraRotation);
 
-	//DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 2.0f, 0, 2.0f);
+    const FVector Start = CameraLocation;
+    const FVector End = Start + CameraRotation.Vector() * Range;
+    
+    FCollisionQueryParams TraceParams;
+    TraceParams.AddIgnoredActor(OwnerCharacter);
 
-	if (FHitResult Hit; GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_WorldStatic, TraceParams))
-	{
-		//DrawDebugSphere(GetWorld(), Hit.Location, 50.0f, 12, FColor::Green, false, 2.0f);
-		UE_LOG(LogTemp, Warning, TEXT("Grapple HIT at: %s"), *Hit.Location.ToString());
-		StartGrapple(Hit.Location);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Grapple MISS - no target found"));
-	}
+    FHitResult Hit;
+    if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_WorldStatic, TraceParams))
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Grapple HIT at: %s"), *Hit.Location.ToString());
+        StartGrapple(Hit.Location);
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Grapple MISS - no target found"));
+    }
+    
+    CurrentCooldown = GrappleCooldown;
 }
 
 void UGrapplingHookComponent::StartGrapple(const FVector& TargetLocation)
 {
     bIsGrappling = true;
-	bShouldBoost = false;
+    bShouldBoost = false;
     GrappleLocation = TargetLocation;
     
+    OwnerCharacter->GetCapsuleComponent()->SetCapsuleHalfHeight(OriginalCapsuleHalfHeight/2);
+    // Initial upward boost
+    OwnerCharacter->LaunchCharacter(FVector(0, 0, InitialUpwardBoost), true, true);
     MovementComponent->SetMovementMode(MOVE_Flying);
     
-	const FVector ToTarget = GrappleLocation - OwnerCharacter->GetActorLocation();
-	const FVector LaunchDirection = ToTarget.GetSafeNormal();
-	FVector LaunchVelocity = LaunchDirection * GrappleSpeed;
+    const FVector ToTarget = GrappleLocation - OwnerCharacter->GetActorLocation();
+    if (ToTarget.Z > MinVerticalBoostHeight || ToTarget.Size2D() > MinHorizontalBoostDistance)
+        bShouldBoost = true;
     
-	if (ToTarget.Z > 100.0f)
-	{
-		bShouldBoost = true;
-	}
-    
-	if (ToTarget.Z < 0) 
-	{
-		LaunchVelocity.Z += 600.0f;
-	}
-	else
-	{
-		LaunchVelocity.Z += 400.0f;
-	}
-    OwnerCharacter->LaunchCharacter(LaunchVelocity, true, true);
-	
     if (UCableComponent* Cable = OwnerCharacter->GetCable())
-    {
         Cable->SetVisibility(true);
-    }
 }
 
-void UGrapplingHookComponent::UpdateGrappleMovement(const float DeltaTime)
-{
-    const FVector CurrentLocation = OwnerCharacter->GetActorLocation();
-    const FVector ToGrapple = GrappleLocation - CurrentLocation;
-    
-	const float Distance = ToGrapple.Size();
-    if (Distance < 10.0f)
-    {
-        ReleaseGrapple();
-        return;
-    }
-	
-	if (bShouldBoost && MovementComponent->Velocity.Z < 0)
-	{
-		bShouldBoost = false;
-	}
-	
-	const FVector SwingDirection = ToGrapple.GetSafeNormal();
-    const FVector CurrentVelocity = MovementComponent->Velocity;
-    
-	// Stronger force for downward grapples
-	float AdjustedSwingForce = SwingForce;
-	if (ToGrapple.Z < 0) 
-	{
-		AdjustedSwingForce *= 1.5f; 
-	}
-    
-	const float ForceMultiplier = FMath::Clamp(Distance / 300.0f, 0.8f, 2.0f);
-	const FVector SwingForceVector = SwingDirection * AdjustedSwingForce * ForceMultiplier * DeltaTime;
-    
-	const FVector TargetVelocity = CurrentVelocity + SwingForceVector;
-	MovementComponent->Velocity = FMath::VInterpTo(CurrentVelocity, TargetVelocity, DeltaTime, 4.0f);
-}
-
-void UGrapplingHookComponent::UpdateCableVisuals(const float DeltaTime) const
+void UGrapplingHookComponent::UpdateCableVisuals(float DeltaTime) const
 {
     if (UCableComponent* Cable = OwnerCharacter->GetCable())
-    {
-        const FVector CurrentStart = OwnerCharacter->GetActorLocation();
-        const FVector DesiredEnd = GrappleLocation - CurrentStart;
-        
-        Cable->EndLocation = FMath::VInterpTo(Cable->EndLocation, DesiredEnd, DeltaTime, CableInterpSpeed);
-    }
+        Cable->SetWorldLocation(FMath::VInterpTo(Cable->GetComponentLocation(), GrappleLocation, DeltaTime, CableInterpSpeed));
 }
 
 void UGrapplingHookComponent::ReleaseGrapple()
 {
     if (!bIsGrappling) return;
     
+    OwnerCharacter->GetCapsuleComponent()->SetCapsuleHalfHeight(OriginalCapsuleHalfHeight);
     bIsGrappling = false;
     MovementComponent->SetMovementMode(MOVE_Walking);
+    
     if (UCableComponent* Cable = OwnerCharacter->GetCable())
         Cable->SetVisibility(false);
 }
 
-bool UGrapplingHookComponent::ShouldBoost() const
+void UGrapplingHookComponent::ClimbAtEnd()
 {
-	return bShouldBoost && MovementComponent && MovementComponent->Velocity.Z > 0;
+    LOG_INFO("Distance %f", Distance);
+    if (Distance < ClimbTriggerDistance)
+    {
+        OwnerCharacter->LaunchCharacter(FVector(0, 0, ClimbDistance), true, true);
+        ReleaseGrapple();
+    }
+}
+
+float UGrapplingHookComponent::CalculatePullStrength(const FVector& ToTarget) const
+{
+    float PullStrength = BasePullStrength;
+    
+    // Increase pull strength for downward/same-level grapples
+    if (ToTarget.Z <= 0.0f)
+    {
+        PullStrength *= DownwardPullMultiplier;
+    }
+    
+    // Scale by distance - closer targets get stronger pulls
+    const float DistanceMultiplier = FMath::Clamp(Distance / DistanceScaleReference, MinDistanceMultiplier, MaxDistanceMultiplier);
+    PullStrength *= DistanceMultiplier;
+    
+    return PullStrength;
+}
+
+bool UGrapplingHookComponent::ShouldApplyAntiGravity(const FVector& ToTarget) const
+{
+    return FMath::Abs(ToTarget.Z) < HorizontalGrappleThreshold && Distance > MinHorizontalDistanceForAntiGravity;
 }

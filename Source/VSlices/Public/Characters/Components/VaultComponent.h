@@ -65,11 +65,11 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Vault")
 	float TraceDistance = 120.f;
 	UPROPERTY(EditAnywhere, Category="Vault")
-	float MinHeightForShortVault = 5.f;
+	float MinHeightForShortVault = 2.f;
 	UPROPERTY(EditAnywhere, Category="Vault")
 	float MaxHeightForShortVault = 50.f;
 	UPROPERTY(EditAnywhere, Category="Vault")
-	float MaxHeightForTraverse = 120.f;
+	float MaxHeightForTraverse = 216.f;
 	UPROPERTY(EditAnywhere, Category="Vault")
 	float ThicknessForClimb = 60.f;
 	
