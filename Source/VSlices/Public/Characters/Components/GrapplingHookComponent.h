@@ -16,6 +16,10 @@ public:
     void ClimbAtEnd();
     FORCEINLINE bool GetIsGrappling() const { return bIsGrappling; }
     FORCEINLINE bool ShouldBoost() const { return bShouldBoost; }
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category="Grappling")
+    FORCEINLINE FVector& GetGrappleLocation() {return GrappleLocation;}
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category="Grappling")
+    FORCEINLINE bool IsGrappling() const {return bIsGrappling;}
 
 protected:
     virtual void BeginPlay() override;
@@ -44,8 +48,6 @@ private:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Distances", meta = (AllowPrivateAccess = "true"))
     float ReleaseDistance = 100.0f;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Distances", meta = (AllowPrivateAccess = "true"))
-    float ClimbTriggerDistance = 200.0f;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Distances", meta = (AllowPrivateAccess = "true"))
     float DistanceScaleReference = 100.0f;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Distances", meta = (AllowPrivateAccess = "true"))
     float HorizontalGrappleThreshold = 100.0f;
@@ -59,13 +61,19 @@ private:
     float MinHorizontalBoostDistance = 300.0f;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Visuals", meta = (AllowPrivateAccess = "true"))
     float CableInterpSpeed = 30.0f;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grapple Mantling", meta = (AllowPrivateAccess = "true"))
+    float MantleDuration = 0.5f;
 
     float CurrentCooldown;
     bool bIsGrappling;
+    bool bIsMantling;
     bool bShouldBoost;
     FVector GrappleLocation;
     float Distance;
     float OriginalCapsuleHalfHeight;
+    FVector MantleStartLocation;
+    FVector MantleTargetLocation;
+    float MantleAlpha;
     
     // Force Scaling Constants
     static constexpr float MinDistanceMultiplier = 0.5f;
@@ -76,4 +84,6 @@ private:
     void UpdateCableVisuals(float DeltaTime) const;
     float CalculatePullStrength(const FVector& ToTarget) const;
     bool ShouldApplyAntiGravity(const FVector& ToTarget) const;
+    void StartSimpleMantle();
+    void UpdateMantle(const float DeltaTime);
 };

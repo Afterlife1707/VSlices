@@ -21,6 +21,11 @@ void UGrapplingHookComponent::TickComponent(float DeltaTime, ELevelTick TickType
 {
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
+    if (bIsMantling)
+    {
+        UpdateMantle(DeltaTime);
+        return;
+    }
     if (!bIsGrappling || CurrentCooldown <= 0.0f)
         return;
 
@@ -44,7 +49,7 @@ void UGrapplingHookComponent::TickComponent(float DeltaTime, ELevelTick TickType
     if (CurrentCooldown <= 0.0f || Distance < ReleaseDistance)
     {
         CurrentCooldown = GrappleCooldown;
-        ReleaseGrapple();
+        ClimbAtEnd();
     }
     
     UpdateCableVisuals(DeltaTime);
@@ -52,11 +57,7 @@ void UGrapplingHookComponent::TickComponent(float DeltaTime, ELevelTick TickType
 
 void UGrapplingHookComponent::TryShoot()
 {
-    if (bIsGrappling)
-    {
-        ReleaseGrapple();
-        return;
-    }
+    if (bIsGrappling) return;
     
     const APlayerController* PC = Cast<APlayerController>(OwnerCharacter->GetController());
     if (!PC) return;
@@ -124,12 +125,47 @@ void UGrapplingHookComponent::ReleaseGrapple()
 
 void UGrapplingHookComponent::ClimbAtEnd()
 {
-    LOG_INFO("Distance %f", Distance);
-    if (Distance < ClimbTriggerDistance)
+    StartSimpleMantle();
+}
+
+void UGrapplingHookComponent::StartSimpleMantle() //similar to vault mantling
+{
+    bIsMantling = true;
+    MantleAlpha = 0.0f;
+    MantleStartLocation = OwnerCharacter->GetActorLocation();
+    
+    // Target position on top of grapple point with capsule clearance
+    const float CapsuleHalfHeight = OwnerCharacter->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+    MantleTargetLocation = GrappleLocation;
+    MantleTargetLocation.Z += CapsuleHalfHeight + 10.0f;
+    
+    if (MovementComponent)
     {
-        OwnerCharacter->LaunchCharacter(FVector(0, 0, ClimbDistance), true, true);
-        ReleaseGrapple();
+        MovementComponent->SetMovementMode(MOVE_None);
+        MovementComponent->Velocity = FVector::ZeroVector;
     }
+    
+    ReleaseGrapple();
+}
+
+void UGrapplingHookComponent::UpdateMantle(const float DeltaTime)
+{
+    if (!bIsMantling) return;
+    
+    MantleAlpha += DeltaTime / MantleDuration;
+    if (MantleAlpha >= 1.0f)
+    {
+        bIsMantling = false;
+        OwnerCharacter->SetActorLocation(MantleTargetLocation);
+        if (MovementComponent)
+        {
+            MovementComponent->SetMovementMode(MOVE_Walking);
+        }
+        return;
+    }
+    
+    const FVector CurrentLocation = FMath::Lerp(MantleStartLocation, MantleTargetLocation, MantleAlpha);
+    OwnerCharacter->SetActorLocation(CurrentLocation);
 }
 
 float UGrapplingHookComponent::CalculatePullStrength(const FVector& ToTarget) const
