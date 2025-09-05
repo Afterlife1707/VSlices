@@ -39,13 +39,9 @@ void UGrapplingHookComponent::TickComponent(float DeltaTime, ELevelTick TickType
     const FVector PullForce = PullDirection * PullStrength * DeltaTime;
     MovementComponent->AddImpulse(PullForce, true);
     
-    // Apply anti-gravity for horizontal grapples
     if (ShouldApplyAntiGravity(ToTarget))
-    {
         MovementComponent->AddImpulse(FVector(0, 0, HorizontalAntiGravityForce * DeltaTime), true);
-    }
     
-    // Check release conditions
     if (CurrentCooldown <= 0.0f || Distance < ReleaseDistance)
     {
         CurrentCooldown = GrappleCooldown;
@@ -89,17 +85,12 @@ void UGrapplingHookComponent::TryShoot()
 void UGrapplingHookComponent::StartGrapple(const FVector& TargetLocation)
 {
     bIsGrappling = true;
-    bShouldBoost = false;
     GrappleLocation = TargetLocation;
     
     OwnerCharacter->GetCapsuleComponent()->SetCapsuleHalfHeight(OriginalCapsuleHalfHeight/2);
     // Initial upward boost
     OwnerCharacter->LaunchCharacter(FVector(0, 0, InitialUpwardBoost), true, true);
     MovementComponent->SetMovementMode(MOVE_Flying);
-    
-    const FVector ToTarget = GrappleLocation - OwnerCharacter->GetActorLocation();
-    if (ToTarget.Z > MinVerticalBoostHeight || ToTarget.Size2D() > MinHorizontalBoostDistance)
-        bShouldBoost = true;
     
     if (UCableComponent* Cable = OwnerCharacter->GetCable())
         Cable->SetVisibility(true);
@@ -123,21 +114,18 @@ void UGrapplingHookComponent::ReleaseGrapple()
         Cable->SetVisibility(false);
 }
 
-void UGrapplingHookComponent::ClimbAtEnd()
-{
-    StartSimpleMantle();
-}
-
-void UGrapplingHookComponent::StartSimpleMantle() //similar to vault mantling
+void UGrapplingHookComponent::ClimbAtEnd() //similar to vault mantling
 {
     bIsMantling = true;
     MantleAlpha = 0.0f;
     MantleStartLocation = OwnerCharacter->GetActorLocation();
     
-    // Target position on top of grapple point with capsule clearance
-    const float CapsuleHalfHeight = OwnerCharacter->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
-    MantleTargetLocation = GrappleLocation;
-    MantleTargetLocation.Z += CapsuleHalfHeight + 10.0f;
+    const FVector ToGrapplePoint = (GrappleLocation - MantleStartLocation).GetSafeNormal();
+    const float CapsuleRadius = OwnerCharacter->GetCapsuleComponent()->GetScaledCapsuleRadius();
+    
+    // Position the target forward from the grapple point
+    MantleTargetLocation = GrappleLocation + (ToGrapplePoint * (CapsuleRadius + 40.0f));
+    MantleTargetLocation.Z += OriginalCapsuleHalfHeight + 10.0f;
     
     if (MovementComponent)
     {
@@ -158,9 +146,7 @@ void UGrapplingHookComponent::UpdateMantle(const float DeltaTime)
         bIsMantling = false;
         OwnerCharacter->SetActorLocation(MantleTargetLocation);
         if (MovementComponent)
-        {
             MovementComponent->SetMovementMode(MOVE_Walking);
-        }
         return;
     }
     
@@ -172,11 +158,8 @@ float UGrapplingHookComponent::CalculatePullStrength(const FVector& ToTarget) co
 {
     float PullStrength = BasePullStrength;
     
-    // Increase pull strength for downward/same-level grapples
     if (ToTarget.Z <= 0.0f)
-    {
         PullStrength *= DownwardPullMultiplier;
-    }
     
     // Scale by distance - closer targets get stronger pulls
     const float DistanceMultiplier = FMath::Clamp(Distance / DistanceScaleReference, MinDistanceMultiplier, MaxDistanceMultiplier);

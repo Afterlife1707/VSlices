@@ -70,7 +70,7 @@ void UWallRunComponent::StartWallRun(const FVector& WallNormal)
 
 	bIsWallRunning = true;
 	FVector NewVelocity = MovementComponent->Velocity;
-	NewVelocity.Z = FMath::Max(0.0f, NewVelocity.Z * 0.5f); // Reduce but don't eliminate upward velocity
+	NewVelocity.Z = FMath::Max(0.0f, NewVelocity.Z * 0.5f);
 	MovementComponent->Velocity = NewVelocity;
 	MovementComponent->SetPlaneConstraintEnabled(true);
 	MovementComponent->SetPlaneConstraintNormal(WallNormal);
@@ -89,10 +89,15 @@ void UWallRunComponent::StopWallRun()
 void UWallRunComponent::Jump()
 {
 	StopWallRun();
-	
+	const APlayerController* PC = OwnerCharacter->GetController<APlayerController>();
+	if(!PC) return;
+	const FVector LookDirection = PC->GetControlRotation().Vector();
+    
 	const float JumpForce = OwnerCharacter->GetVelocity().Length() * JumpForceMultiplier;
-	const FVector DirLaunchVelocity = MovementComponent->GetPlaneConstraintNormal()* JumpForce + JumpHeightBoost;
-	
+	const FVector WallNormal = MovementComponent->GetPlaneConstraintNormal();
+	const FVector LaunchDirection = (LookDirection + WallNormal * 0.5f).GetSafeNormal();
+	const FVector DirLaunchVelocity = LaunchDirection * JumpForce + JumpHeightBoost;
+    
 	OwnerCharacter->LaunchCharacter(DirLaunchVelocity, false, true);
 	bIsWallRunning = false;
 }

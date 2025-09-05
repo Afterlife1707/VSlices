@@ -15,7 +15,6 @@ public:
     void ReleaseGrapple();
     void ClimbAtEnd();
     FORCEINLINE bool GetIsGrappling() const { return bIsGrappling; }
-    FORCEINLINE bool ShouldBoost() const { return bShouldBoost; }
     UFUNCTION(BlueprintCallable, BlueprintPure, Category="Grappling")
     FORCEINLINE FVector& GetGrappleLocation() {return GrappleLocation;}
     UFUNCTION(BlueprintCallable, BlueprintPure, Category="Grappling")
@@ -67,7 +66,6 @@ private:
     float CurrentCooldown;
     bool bIsGrappling;
     bool bIsMantling;
-    bool bShouldBoost;
     FVector GrappleLocation;
     float Distance;
     float OriginalCapsuleHalfHeight;
@@ -84,6 +82,5 @@ private:
     void UpdateCableVisuals(float DeltaTime) const;
     float CalculatePullStrength(const FVector& ToTarget) const;
     bool ShouldApplyAntiGravity(const FVector& ToTarget) const;
-    void StartSimpleMantle();
     void UpdateMantle(const float DeltaTime);
 };

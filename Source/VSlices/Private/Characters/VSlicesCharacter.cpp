@@ -254,7 +254,7 @@ void AVSlicesCharacter::NotifyHit(UPrimitiveComponent* MyComp, AActor* Other,UPr
 {
 	Super::NotifyHit(MyComp, Other, OtherComp, bSelfMoved, HitLocation, HitNormal, NormalImpulse, Hit);
 
-	if(!OtherComp->IsSimulatingPhysics() && GrapplingHookComponent && GrapplingHookComponent->GetIsGrappling() && GrapplingHookComponent->ShouldBoost())
+	if(!OtherComp->IsSimulatingPhysics() && GrapplingHookComponent && GrapplingHookComponent->GetIsGrappling())
 	{
 		GrapplingHookComponent->ClimbAtEnd();
 	}
