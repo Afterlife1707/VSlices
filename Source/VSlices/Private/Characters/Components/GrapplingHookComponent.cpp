@@ -1,13 +1,17 @@
 #include "Characters/Components/GrapplingHookComponent.h"
 #include "CableComponent.h"
 #include "Characters/VSlicesCharacter.h"
+#include "Components/AudioComponent.h"
 #include "Engine/Engine.h"
 #include "Components/CapsuleComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 UGrapplingHookComponent::UGrapplingHookComponent()
 {
     PrimaryComponentTick.bCanEverTick = true;
-	PrimaryComponentTick.TickInterval = 0.1f;
+    PrimaryComponentTick.TickInterval = 0.1f;
+    GrapplePullAudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("GrapplePullAudio"));
+    GrapplePullAudioComponent->bAutoActivate = false;
 }
 
 void UGrapplingHookComponent::BeginPlay()
@@ -15,7 +19,7 @@ void UGrapplingHookComponent::BeginPlay()
     Super::BeginPlay();
     
 	CurrentCooldown = GrappleCooldown;
-	OriginalCapsuleHalfHeight = OwnerCharacter->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+    OriginalCapsuleHalfHeight = OwnerCharacter->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
 }
 
 void UGrapplingHookComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -55,7 +59,8 @@ void UGrapplingHookComponent::TickComponent(float DeltaTime, ELevelTick TickType
 void UGrapplingHookComponent::TryShoot()
 {
     if (bIsGrappling) return;
-    
+    if (GrappleStart)
+        UGameplayStatics::PlaySoundAtLocation(GetWorld(), GrappleStart, OwnerCharacter->GetActorLocation());
     const APlayerController* PC = Cast<APlayerController>(OwnerCharacter->GetController());
     if (!PC) return;
     
@@ -87,6 +92,10 @@ void UGrapplingHookComponent::StartGrapple(const FVector& TargetLocation)
 {
     bIsGrappling = true;
     GrappleLocation = TargetLocation;
+    if (GrappleAttach)
+        UGameplayStatics::PlaySoundAtLocation(GetWorld(), GrappleAttach, TargetLocation);
+    if (GrapplePullAudioComponent && GrapplePull)
+        GrapplePullAudioComponent->Play();
     
     OwnerCharacter->GetCapsuleComponent()->SetCapsuleHalfHeight(OriginalCapsuleHalfHeight/2);
     // Initial upward boost
@@ -106,7 +115,8 @@ void UGrapplingHookComponent::UpdateCableVisuals(float DeltaTime) const
 void UGrapplingHookComponent::ReleaseGrapple()
 {
     if (!bIsGrappling) return;
-    
+    if (GrapplePullAudioComponent && GrapplePullAudioComponent->IsPlaying())
+        GrapplePullAudioComponent->Stop();
     OwnerCharacter->GetCapsuleComponent()->SetCapsuleHalfHeight(OriginalCapsuleHalfHeight);
     bIsGrappling = false;
     MovementComponent->SetMovementMode(MOVE_Walking);

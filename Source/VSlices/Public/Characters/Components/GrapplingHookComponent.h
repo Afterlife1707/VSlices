@@ -25,6 +25,16 @@ protected:
     virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 private:
+    //Sounds
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Audio", meta = (AllowPrivateAccess = "true"))
+    UAudioComponent* GrapplePullAudioComponent;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Audio", meta = (AllowPrivateAccess = "true"))
+    USoundBase* GrappleStart;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Audio", meta = (AllowPrivateAccess = "true"))
+    USoundBase* GrappleAttach;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Audio", meta = (AllowPrivateAccess = "true"))
+    USoundBase* GrapplePull;
+    
     // Grappling Parameters
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Grappling", meta = (AllowPrivateAccess = "true"))
     float Range = 3000.0f;
