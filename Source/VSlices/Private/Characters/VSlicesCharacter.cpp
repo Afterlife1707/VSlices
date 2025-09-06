@@ -1,5 +1,3 @@
-//Copyright Epic Games, Inc. All Rights Reserved.
-
 #include "Characters/VSlicesCharacter.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -58,6 +56,15 @@ void AVSlicesCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 	
+	if (bInCoyoteTime)
+	{
+		CoyoteTimeRemaining -= DeltaSeconds;
+		if (CoyoteTimeRemaining <= 0.0f)
+		{
+			bInCoyoteTime = false;
+			CoyoteTimeRemaining = 0.0f;
+		}
+	}
 	if (SlideComponent)
 		SlideComponent->HandleSlideTick(DeltaSeconds);
 	
@@ -176,6 +183,11 @@ void AVSlicesCharacter::StopSprinting() const
 	if(SprintComponent) SprintComponent->StopSprinting();
 }
 
+void AVSlicesCharacter::ShootGrapplingHook() const
+{
+	GrapplingHookComponent->TryShoot();
+}
+
 void AVSlicesCharacter::ToggleCrouch()
 {
 	if (bIsCrouched) StopCrouch();
@@ -194,12 +206,9 @@ void AVSlicesCharacter::StopCrouch()
 	UnCrouch();
 }
 
-#pragma region JUMP
+#pragma endregion COMPONENTS
 
-bool AVSlicesCharacter::CanJumpInternal_Implementation() const 
-{
-	return Super::CanJumpInternal_Implementation() || bIsCrouched;
-}
+#pragma region JUMP
 
 void AVSlicesCharacter::Jump() 
 {
@@ -218,7 +227,7 @@ void AVSlicesCharacter::Jump()
     
 	Super::Jump(); 
     
-	// if (LedgeSwingComponent)
+	/* if (LedgeSwingComponent)
 	// {
 	// 	GetWorld()->GetTimerManager().SetTimer(LedgeDetectionTimerHandle, [this]()
 	// 	{
@@ -229,7 +238,7 @@ void AVSlicesCharacter::Jump()
 	// 		}
 	// 		LedgeSwingComponent->TryGrab();
 	// 	}, 0.01f, true); 
-	// }
+	// } */
     
 	if (GetIsSprinting() && GetVelocity().Length()>=MaxJogSpeed) //boost if sprinting
 	{
@@ -261,12 +270,9 @@ void AVSlicesCharacter::LaunchForward()
 	LaunchCharacter(LaunchDir, true, false);
 }
 
-void AVSlicesCharacter::ShootGrapplingHook() const
-{
-	GrapplingHookComponent->TryShoot();
-}
-
 #pragma endregion JUMP
+
+#pragma region OVERRIDES
 
 void AVSlicesCharacter::NotifyHit(UPrimitiveComponent* MyComp, AActor* Other,UPrimitiveComponent* OtherComp, bool bSelfMoved,
 	FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit)
@@ -281,6 +287,28 @@ void AVSlicesCharacter::NotifyHit(UPrimitiveComponent* MyComp, AActor* Other,UPr
 		WallRunComponent->TryWallRun(Hit);
 }
 
+bool AVSlicesCharacter::CanJumpInternal_Implementation() const 
+{
+	return Super::CanJumpInternal_Implementation() || bIsCrouched || bInCoyoteTime;
+}
+
+void AVSlicesCharacter::OnMovementModeChanged(EMovementMode PrevMovementMode, uint8 PreviousCustomMode)
+{
+	Super::OnMovementModeChanged(PrevMovementMode, PreviousCustomMode);
+
+	const EMovementMode CurrentMovementMode = GetCharacterMovement()->MovementMode;
+	if ((PrevMovementMode == MOVE_Walking || PrevMovementMode == MOVE_Flying) && CurrentMovementMode == MOVE_Falling && GetVelocity().Z<=0.f)
+	{
+		bInCoyoteTime = true;
+		CoyoteTimeRemaining = CoyoteTimeDuration;
+	}
+	if (CurrentMovementMode == MOVE_Walking || CurrentMovementMode == MOVE_Flying)
+	{
+		bInCoyoteTime = false;
+		CoyoteTimeRemaining = 0.0f;
+	}
+}
+
 void AVSlicesCharacter::Landed(const FHitResult& Hit)
 {
 	Super::Landed(Hit);
@@ -289,4 +317,4 @@ void AVSlicesCharacter::Landed(const FHitResult& Hit)
 	WallRunComponent->StopWallRun();
 }
 
-#pragma endregion COMPONENTS
+#pragma endregion OVERRIDES
