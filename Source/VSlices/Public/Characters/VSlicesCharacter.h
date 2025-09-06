@@ -36,6 +36,8 @@ class AVSlicesCharacter : public ACharacter
 	class UGrapplingHookComponent* GrapplingHookComponent;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="GrapplingGun", meta = (AllowPrivateAccess = "true"))
 	class UCableComponent* Cable;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
+	class ULedgeSwingComponent* LedgeSwingComponent;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	float JumpCooldownTime = 1.f;
@@ -108,4 +110,5 @@ public:
 private:
 	bool bCanJump = true;
 	FTimerHandle JumpCooldownTimerHandle;
+	FTimerHandle LedgeDetectionTimerHandle;
 };

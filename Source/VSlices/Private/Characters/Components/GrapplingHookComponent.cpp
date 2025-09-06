@@ -7,6 +7,7 @@
 UGrapplingHookComponent::UGrapplingHookComponent()
 {
     PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.TickInterval = 0.1f;
 }
 
 void UGrapplingHookComponent::BeginPlay()
@@ -116,6 +117,12 @@ void UGrapplingHookComponent::ReleaseGrapple()
 
 void UGrapplingHookComponent::ClimbAtEnd() //similar to vault mantling
 {
+    if(!ValidateLandingSpace(GrappleLocation))
+    {
+        ReleaseGrapple();
+        return;
+    }
+    
     bIsMantling = true;
     MantleAlpha = 0.0f;
     MantleStartLocation = OwnerCharacter->GetActorLocation();
@@ -134,6 +141,26 @@ void UGrapplingHookComponent::ClimbAtEnd() //similar to vault mantling
     }
     
     ReleaseGrapple();
+}
+
+bool UGrapplingHookComponent::ValidateLandingSpace(const FVector& ObstacleTop) const
+{
+    const float CapsuleRadius = OwnerCharacter->GetCapsuleComponent()->GetScaledCapsuleRadius();
+    const FVector ForwardVector = OwnerCharacter->GetActorForwardVector();
+    const FVector LandingPos = ObstacleTop + ForwardVector * (CapsuleRadius + 20.0f) + FVector(0, 0, OriginalCapsuleHalfHeight);
+    
+    FCollisionQueryParams TraceParams;
+    TraceParams.AddIgnoredActor(OwnerCharacter);
+    const bool bHasSpace = !GetWorld()->OverlapAnyTestByChannel(
+        LandingPos, 
+        FQuat::Identity, 
+        ECC_WorldStatic, 
+        FCollisionShape::MakeCapsule(CapsuleRadius * 0.85f, OriginalCapsuleHalfHeight * 0.9f), 
+        TraceParams
+    );
+    
+    // DrawDebugCapsule(GetWorld(), LandingPos, CapsuleHalfHeight, CapsuleRadius, FQuat::Identity, bHasSpace ? FColor::Green : FColor::Red, false, 1.5f);
+    return bHasSpace;
 }
 
 void UGrapplingHookComponent::UpdateMantle(const float DeltaTime)

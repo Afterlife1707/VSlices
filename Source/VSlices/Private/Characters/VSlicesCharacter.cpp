@@ -15,6 +15,7 @@
 #include "Characters/Components/VaultComponent.h"
 #include "Characters/Components/WallRunComponent.h"
 #include "CableComponent.h" 
+#include "Characters/Components/LedgeSwingComponent.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -46,6 +47,7 @@ AVSlicesCharacter::AVSlicesCharacter()
 	VaultComponent = CreateDefaultSubobject<UVaultComponent>(TEXT("Vault"));
 	WallRunComponent = CreateDefaultSubobject<UWallRunComponent>(TEXT("WallRun"));
 	GrapplingHookComponent = CreateDefaultSubobject<UGrapplingHookComponent>(TEXT("GrapplingHook"));
+	LedgeSwingComponent = CreateDefaultSubobject<ULedgeSwingComponent>(TEXT("LedgeSwing"));
 	
 	Cable = CreateDefaultSubobject<UCableComponent>(TEXT("GrappleCable"));
 	Cable->SetupAttachment(GetMesh(), TEXT("hand_r"));
@@ -206,13 +208,30 @@ void AVSlicesCharacter::Jump()
 		WallRunComponent->Jump();
 		return;
 	}
-	//if(GrapplingHookComponent && GrapplingHookComponent->GetIsGrappling()) return;
-	
-	if (VaultComponent && !VaultComponent->IsVaulting() && VaultComponent->TryVault(GetIsSprinting()))return;
+	if (LedgeSwingComponent && LedgeSwingComponent->IsHanging())
+	{
+		LedgeSwingComponent->Jump();
+		return;
+	}
+	if (VaultComponent && !VaultComponent->IsVaulting() && VaultComponent->TryVault(GetIsSprinting()))return; //check vaulting
 	if (!bCanJump) return;
-	
-	Super::Jump();
-	if (GetIsSprinting() && GetVelocity().Length()>=MaxJogSpeed)
+    
+	Super::Jump(); 
+    
+	// if (LedgeSwingComponent)
+	// {
+	// 	GetWorld()->GetTimerManager().SetTimer(LedgeDetectionTimerHandle, [this]()
+	// 	{
+	// 		if (!GetCharacterMovement()->IsFalling() || LedgeSwingComponent->IsHanging())
+	// 		{
+	// 			GetWorld()->GetTimerManager().ClearTimer(LedgeDetectionTimerHandle);
+	// 			return;
+	// 		}
+	// 		LedgeSwingComponent->TryGrab();
+	// 	}, 0.01f, true); 
+	// }
+    
+	if (GetIsSprinting() && GetVelocity().Length()>=MaxJogSpeed) //boost if sprinting
 	{
 		FTimerHandle JumpTimerHandle;
 		GetWorld()->GetTimerManager().SetTimer(JumpTimerHandle, this, &AVSlicesCharacter::LaunchForward, 0.1f, false);
@@ -220,7 +239,7 @@ void AVSlicesCharacter::Jump()
 	if(bIsCrouched)
 		UnCrouch();
 	bCanJump = false;
-	
+    
 	float CurrentJumpCooldown = JumpCooldownTime;
 	if(GetIsSprinting()) CurrentJumpCooldown *= 1.5f;
 	GetWorldTimerManager().SetTimer(JumpCooldownTimerHandle,this,&AVSlicesCharacter::ResetJumpCooldown, CurrentJumpCooldown,false);

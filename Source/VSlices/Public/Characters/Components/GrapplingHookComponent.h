@@ -83,4 +83,5 @@ private:
     float CalculatePullStrength(const FVector& ToTarget) const;
     bool ShouldApplyAntiGravity(const FVector& ToTarget) const;
     void UpdateMantle(const float DeltaTime);
+    bool ValidateLandingSpace(const FVector& ObstacleTop) const;
 };
