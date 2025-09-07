@@ -103,9 +103,13 @@ void UWallRunComponent::Jump()
     
 	const float JumpForce = OwnerCharacter->GetVelocity().Length() * JumpForceMultiplier;
 	const FVector WallNormal = MovementComponent->GetPlaneConstraintNormal();
-	const FVector LaunchDirection = (LookDirection + WallNormal * 0.5f).GetSafeNormal();
-	const FVector DirLaunchVelocity = LaunchDirection * JumpForce + JumpHeightBoost;
+	FVector LaunchDirection = (LookDirection + WallNormal * 0.5f).GetSafeNormal();
     
+	LaunchDirection.Z = 0.8f; 
+	LaunchDirection = LaunchDirection.GetSafeNormal();
+    
+	FVector DirLaunchVelocity = LaunchDirection * JumpForce;
+	DirLaunchVelocity.Z += JumpHeightBoost;
 	OwnerCharacter->LaunchCharacter(DirLaunchVelocity, false, true);
 	bIsWallRunning = false;
 }

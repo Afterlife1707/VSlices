@@ -150,6 +150,7 @@ void AVSlicesCharacter::Move(const FInputActionValue& Value)
 
 void AVSlicesCharacter::Look(const FInputActionValue& Value)
 {
+	if(VaultComponent && VaultComponent->IsVaulting()) return;
 	// input is a Vector2D
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
 
@@ -280,9 +281,8 @@ void AVSlicesCharacter::NotifyHit(UPrimitiveComponent* MyComp, AActor* Other,UPr
 	Super::NotifyHit(MyComp, Other, OtherComp, bSelfMoved, HitLocation, HitNormal, NormalImpulse, Hit);
 
 	if(!OtherComp->IsSimulatingPhysics() && GrapplingHookComponent && GrapplingHookComponent->GetIsGrappling())
-	{
 		GrapplingHookComponent->ClimbAtEnd();
-	}
+	
 	if (WallRunComponent && Other && OtherComp)
 		WallRunComponent->TryWallRun(Hit);
 }

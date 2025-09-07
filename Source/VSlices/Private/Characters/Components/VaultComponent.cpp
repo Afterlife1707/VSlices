@@ -38,14 +38,33 @@ void UVaultComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActor
 
 void UVaultComponent::UpdateVaultMotion(const float DeltaTime) const
 {
-    // Arc trajectory calculation
     const FVector HorizontalPos = FMath::Lerp(VaultStartLocation, VaultTargetLocation, VaultLerpAlpha);
     const float ArcHeight = FMath::Lerp(VaultStartLocation.Z, VaultTargetLocation.Z, VaultLerpAlpha) + CalculateArcOffset();
+    const FVector TargetLocation(HorizontalPos.X, HorizontalPos.Y, ArcHeight);
     
-    const FVector NewLocation(HorizontalPos.X, HorizontalPos.Y, ArcHeight);
-    const FRotator NewRotation = FMath::RInterpTo(VaultStartRotation, VaultTargetRotation, DeltaTime, 15.f);
+    // Final position precision
+    if (VaultLerpAlpha >= 0.9f)
+    {
+        // Smoothly move to exact final position instead of using velocity
+        const FVector CurrentLocation = OwnerCharacter->GetActorLocation();
+        const FVector FinalLocation = FMath::VInterpTo(CurrentLocation, VaultTargetLocation, DeltaTime, 15.f);
+        OwnerCharacter->SetActorLocation(FinalLocation);
+        MovementComponent->Velocity = FVector::ZeroVector;
+    }
+    else
+    {
+        // Use velocity-based movement
+        const FVector CurrentLocation = OwnerCharacter->GetActorLocation();
+        const FVector Direction = (TargetLocation - CurrentLocation).GetSafeNormal();
+        const float Distance = FVector::Dist(CurrentLocation, TargetLocation);
+        const float Speed = Distance / (VaultLerpTime * (1.0f - VaultLerpAlpha + 0.01f));
+        
+        MovementComponent->Velocity = Direction * FMath::Min(Speed, 1000.f);
+    }
     
-    OwnerCharacter->SetActorLocationAndRotation(NewLocation, NewRotation, false, nullptr, ETeleportType::TeleportPhysics);
+    // Handle rotation
+    const FRotator NewRotation = FMath::RInterpTo(OwnerCharacter->GetActorRotation(), VaultTargetRotation, DeltaTime, 15.f);
+    OwnerCharacter->SetActorRotation(NewRotation);
 }
 
 void UVaultComponent::UpdateClimbMotion(const float DeltaTime) const
@@ -237,6 +256,7 @@ void UVaultComponent::StartVault(const EVaultType VaultType, const FVector& Targ
     MovementComponent->SetMovementMode(MOVE_Flying);
     MovementComponent->Velocity = FVector::ZeroVector;
     
+    // Get animation montage and set lerp time
     if (UAnimMontage* MontageToPlay = GetVaultMontage(VaultType))
     {
         VaultLerpTime = OwnerCharacter->PlayAnimMontage(MontageToPlay);
