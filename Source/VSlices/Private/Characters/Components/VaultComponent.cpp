@@ -237,7 +237,6 @@ void UVaultComponent::StartVault(const EVaultType VaultType, const FVector& Targ
     MovementComponent->SetMovementMode(MOVE_Flying);
     MovementComponent->Velocity = FVector::ZeroVector;
     
-    // Get animation montage and set lerp time
     if (UAnimMontage* MontageToPlay = GetVaultMontage(VaultType))
     {
         VaultLerpTime = OwnerCharacter->PlayAnimMontage(MontageToPlay);

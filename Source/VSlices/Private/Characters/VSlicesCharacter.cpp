@@ -309,6 +309,14 @@ void AVSlicesCharacter::OnMovementModeChanged(EMovementMode PrevMovementMode, ui
 	}
 }
 
+void AVSlicesCharacter::CalcCamera(float DeltaTime, FMinimalViewInfo& OutResult)
+{
+	Super::CalcCamera(DeltaTime, OutResult);
+	
+	if (WallRunComponent && WallRunComponent->ShouldCameraTilt() )
+		OutResult.Rotation.Roll += WallRunComponent->GetCameraTilt();
+}
+
 void AVSlicesCharacter::Landed(const FHitResult& Hit)
 {
 	Super::Landed(Hit);

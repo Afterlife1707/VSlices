@@ -2,6 +2,8 @@
 
 
 #include "Characters/Components/WallRunComponent.h"
+
+#include "Camera/CameraComponent.h"
 #include "Characters/VSlicesCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
@@ -20,6 +22,9 @@ void UWallRunComponent::BeginPlay()
 void UWallRunComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	if (bCameraTilt)
+		UpdateCameraTilt(DeltaTime);
 	
 	if (!bIsWallRunning || !IsValid(OwnerCharacter)) return;
 	
@@ -69,6 +74,7 @@ void UWallRunComponent::StartWallRun(const FVector& WallNormal)
 	if(!MovementComponent->IsFalling() || bIsWallRunning) return;
 
 	bIsWallRunning = true;
+	bCameraTilt = true;
 	FVector NewVelocity = MovementComponent->Velocity;
 	NewVelocity.Z = FMath::Max(0.0f, NewVelocity.Z * 0.5f);
 	MovementComponent->Velocity = NewVelocity;
@@ -84,6 +90,8 @@ void UWallRunComponent::StopWallRun()
 	GetWorld()->GetTimerManager().ClearTimer(WallRunTimerHandle);
 	MovementComponent->SetPlaneConstraintEnabled(false);
 	MovementComponent->GravityScale = DefaultGravityScale;
+	bIsWallRunning = false;
+	bCameraTilt = true;
 }
 
 void UWallRunComponent::Jump()
@@ -107,5 +115,17 @@ void UWallRunComponent::ResetWallRun()
 	GetWorld()->GetTimerManager().ClearTimer(WallRunTimerHandle);
 	bIsWallRunning = false;
 	Direction = EWallRunDir::None;
+	bCameraTilt = false;
 }
 
+void UWallRunComponent::UpdateCameraTilt(const float DeltaTime)
+{
+	const float TargetTilt = bIsWallRunning ? ((Direction == EWallRunDir::Left) ? -CameraTiltAngle : CameraTiltAngle) : 0.0f;
+	CurrentCameraTilt = FMath::FInterpTo(CurrentCameraTilt, TargetTilt, DeltaTime, CameraTiltSpeed);
+    
+	if (FMath::Abs(CurrentCameraTilt - TargetTilt) < 0.1f)
+	{
+		CurrentCameraTilt = TargetTilt; 
+		bCameraTilt = false;
+	}
+}
