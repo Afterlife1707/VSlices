@@ -45,6 +45,8 @@ private:
 	float DefaultGravityScale;
 	void UpdateCameraTilt(float DeltaTime);
 	float CurrentCameraTilt;
+	UPROPERTY()
+	AActor* LastWallActor;
 	
 	UPROPERTY(EditDefaultsOnly, Category="Wall Run", meta=(AllowPrivateAccess))
 	float WallRunGravityScale = 0.5f;

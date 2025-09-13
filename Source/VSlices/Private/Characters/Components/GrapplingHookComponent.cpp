@@ -198,7 +198,7 @@ float UGrapplingHookComponent::CalculatePullStrength(const FVector& ToTarget) co
     if (ToTarget.Z <= 0.0f)
         PullStrength *= DownwardPullMultiplier;
     
-    // Scale by distance - closer targets get stronger pulls
+    // closer targets get stronger pulls
     const float DistanceMultiplier = FMath::Clamp(Distance / DistanceScaleReference, MinDistanceMultiplier, MaxDistanceMultiplier);
     PullStrength *= DistanceMultiplier;
     

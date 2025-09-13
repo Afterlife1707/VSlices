@@ -72,53 +72,6 @@ void AVSlicesCharacter::Tick(float DeltaSeconds)
 		LandingComponent->HandleFallDetection();
 }
 
-#pragma region GETTERS
-USprintComponent* AVSlicesCharacter::GetSprintComponent() const
-{
-	return SprintComponent;
-}
-
-USlideComponent* AVSlicesCharacter::GetSlideComponent() const
-{
-	return SlideComponent;
-}
-
-USlopeComponent* AVSlicesCharacter::GetSlopeComponent() const
-{
-	return SlopeComponent;
-}
-
-UVaultComponent* AVSlicesCharacter::GetVaultComponent() const
-{
-	return VaultComponent;
-}
-
-ULandingComponent* AVSlicesCharacter::GetLandingComponent() const
-{
-	return LandingComponent;
-}
-
-UWallRunComponent* AVSlicesCharacter::GetWallRunComponent() const
-{
-	return WallRunComponent;
-}
-
-FSlopeInfo AVSlicesCharacter::GetSlopeInfo() const
-{
-	return SlopeComponent->GetSlopeInfo();
-}
-
-bool AVSlicesCharacter::GetIsSprinting() const
-{
-	return SprintComponent->GetIsSprinting();
-}
-
-bool AVSlicesCharacter::GetIsSliding() const
-{
-	return SlideComponent ? SlideComponent->IsSliding() : false;
-}
-#pragma endregion
-
 void AVSlicesCharacter::Move(const FInputActionValue& Value)
 {
 	// input is a Vector2D
@@ -213,11 +166,13 @@ void AVSlicesCharacter::StopCrouch()
 
 void AVSlicesCharacter::Jump() 
 {
-	if (WallRunComponent->IsWallRunning())
+	if (WallRunComponent->IsWallRunning()) //jump off wall run
 	{
 		WallRunComponent->Jump();
+		GetWorldTimerManager().SetTimer(JumpCooldownTimerHandle,this,&AVSlicesCharacter::ResetJumpCooldown, JumpCooldownTime,false);
 		return;
 	}
+	
 	if (LedgeSwingComponent && LedgeSwingComponent->IsHanging())
 	{
 		LedgeSwingComponent->Jump();
@@ -283,7 +238,7 @@ void AVSlicesCharacter::NotifyHit(UPrimitiveComponent* MyComp, AActor* Other,UPr
 	if(!OtherComp->IsSimulatingPhysics() && GrapplingHookComponent && GrapplingHookComponent->GetIsGrappling())
 		GrapplingHookComponent->ClimbAtEnd();
 	
-	if (WallRunComponent && Other && OtherComp)
+	if (WallRunComponent && !WallRunComponent->IsWallRunning() && Other && OtherComp)
 		WallRunComponent->TryWallRun(Hit);
 }
 
@@ -326,3 +281,50 @@ void AVSlicesCharacter::Landed(const FHitResult& Hit)
 }
 
 #pragma endregion OVERRIDES
+
+#pragma region GETTERS
+USprintComponent* AVSlicesCharacter::GetSprintComponent() const
+{
+	return SprintComponent;
+}
+
+USlideComponent* AVSlicesCharacter::GetSlideComponent() const
+{
+	return SlideComponent;
+}
+
+USlopeComponent* AVSlicesCharacter::GetSlopeComponent() const
+{
+	return SlopeComponent;
+}
+
+UVaultComponent* AVSlicesCharacter::GetVaultComponent() const
+{
+	return VaultComponent;
+}
+
+ULandingComponent* AVSlicesCharacter::GetLandingComponent() const
+{
+	return LandingComponent;
+}
+
+UWallRunComponent* AVSlicesCharacter::GetWallRunComponent() const
+{
+	return WallRunComponent;
+}
+
+FSlopeInfo AVSlicesCharacter::GetSlopeInfo() const
+{
+	return SlopeComponent->GetSlopeInfo();
+}
+
+bool AVSlicesCharacter::GetIsSprinting() const
+{
+	return SprintComponent->GetIsSprinting();
+}
+
+bool AVSlicesCharacter::GetIsSliding() const
+{
+	return SlideComponent ? SlideComponent->IsSliding() : false;
+}
+#pragma endregion GETTERS

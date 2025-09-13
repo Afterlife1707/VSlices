@@ -2,8 +2,6 @@
 
 
 #include "Characters/Components/WallRunComponent.h"
-
-#include "Camera/CameraComponent.h"
 #include "Characters/VSlicesCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
@@ -43,7 +41,11 @@ void UWallRunComponent::TryWallRun(const FHitResult& Hit)
 	LastWallRunAttempt = CurrentTime;
     
 	if(CheckForWall(Hit))
+	{
+		if(LastWallActor==Hit.GetActor()) return;
+		LastWallActor = Hit.GetActor();
 		StartWallRun(Hit.Normal);
+	}
 	else if (!bIsWallRunning) 
 		StopWallRun();
 }
@@ -72,6 +74,7 @@ bool UWallRunComponent::CheckForWall(const FHitResult& Hit)
 void UWallRunComponent::StartWallRun(const FVector& WallNormal)
 {
 	if(!MovementComponent->IsFalling() || bIsWallRunning) return;
+	//LOG_INFO("start Wall run");
 
 	bIsWallRunning = true;
 	bCameraTilt = true;
@@ -87,6 +90,7 @@ void UWallRunComponent::StartWallRun(const FVector& WallNormal)
 
 void UWallRunComponent::StopWallRun()
 {
+	//LOG_INFO("Stop Wall run");
 	GetWorld()->GetTimerManager().ClearTimer(WallRunTimerHandle);
 	MovementComponent->SetPlaneConstraintEnabled(false);
 	MovementComponent->GravityScale = DefaultGravityScale;
@@ -105,7 +109,7 @@ void UWallRunComponent::Jump()
 	const FVector WallNormal = MovementComponent->GetPlaneConstraintNormal();
 	FVector LaunchDirection = (LookDirection + WallNormal * 0.5f).GetSafeNormal();
     
-	LaunchDirection.Z = 0.8f; 
+	LaunchDirection.Z = 0.4f; 
 	LaunchDirection = LaunchDirection.GetSafeNormal();
     
 	FVector DirLaunchVelocity = LaunchDirection * JumpForce;
@@ -120,6 +124,7 @@ void UWallRunComponent::ResetWallRun()
 	bIsWallRunning = false;
 	Direction = EWallRunDir::None;
 	bCameraTilt = false;
+	LastWallActor=nullptr;
 }
 
 void UWallRunComponent::UpdateCameraTilt(const float DeltaTime)
