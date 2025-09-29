@@ -69,14 +69,21 @@ void ULedgeComponent::TryGrab() const
     }
 }
 
-void ULedgeComponent::OnJump() const
+void ULedgeComponent::OnJump()
+{
+    MovementComponent->Velocity = FVector(0.0, 0.0, MovementComponent->JumpZVelocity/2);
+    GetWorld()->GetTimerManager().SetTimer(JumpTimer, this, &ULedgeComponent::DisableGrab, 0.2f, false);
+}
+
+void ULedgeComponent::DisableGrab() const
 {
     SetGrab(false);
-    MovementComponent->Velocity = FVector(0.0, CapsuleRadius+5.f, MovementComponent->JumpZVelocity * 1.5f);
 }
 
 void ULedgeComponent::SetGrab(const bool bGrab) const
 {
+    OwnerCharacter->SetActorEnableCollision(!bGrab);
+    OwnerCharacter->GetCapsuleComponent()->SetCapsuleRadius(bGrab ? CapsuleRadius/2:CapsuleRadius);
     MovementComponent->GravityScale = bGrab ? 0.0f:OriginalGravityScale;
     OwnerCharacter->SetGrabLedge(bGrab);
     OwnerCharacter->bUseControllerRotationYaw = !bGrab;

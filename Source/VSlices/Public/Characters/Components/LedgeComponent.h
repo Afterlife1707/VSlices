@@ -12,7 +12,8 @@ public:
     ULedgeComponent();
 	
     void TryGrab() const;
-	void OnJump() const;
+	void OnJump();
+	void DisableGrab() const;
 	void SetGrab(bool bGrab) const;
 
 protected:
@@ -34,6 +35,7 @@ protected:
 	float JumpVelocityMultiplier = 1.f;
 
 private:
+	FTimerHandle JumpTimer;
 	float OriginalGravityScale;
 	float CapsuleHalfHeight;
 	float CapsuleRadius;

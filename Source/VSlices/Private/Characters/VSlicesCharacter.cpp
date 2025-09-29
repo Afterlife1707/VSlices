@@ -183,7 +183,7 @@ void AVSlicesCharacter::Jump()
 	if(LedgeComponent && bLedgeGrab) //ledge grabbing
 	{
 		LedgeComponent->OnJump();
-		//continue normal jump
+		return;
 	}
 	if (WallRunComponent->IsWallRunning()) //jump off wall run
 	{
