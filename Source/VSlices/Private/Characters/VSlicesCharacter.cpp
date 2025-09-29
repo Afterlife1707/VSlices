@@ -13,7 +13,7 @@
 #include "Characters/Components/VaultComponent.h"
 #include "Characters/Components/WallRunComponent.h"
 #include "CableComponent.h" 
-#include "Characters/Components/LedgeSwingComponent.h"
+#include "Characters/Components/LedgeComponent.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -45,7 +45,7 @@ AVSlicesCharacter::AVSlicesCharacter()
 	VaultComponent = CreateDefaultSubobject<UVaultComponent>(TEXT("Vault"));
 	WallRunComponent = CreateDefaultSubobject<UWallRunComponent>(TEXT("WallRun"));
 	GrapplingHookComponent = CreateDefaultSubobject<UGrapplingHookComponent>(TEXT("GrapplingHook"));
-	LedgeSwingComponent = CreateDefaultSubobject<ULedgeSwingComponent>(TEXT("LedgeSwing"));
+	LedgeComponent = CreateDefaultSubobject<ULedgeComponent>(TEXT("Ledge"));
 	
 	Cable = CreateDefaultSubobject<UCableComponent>(TEXT("GrappleCable"));
 	Cable->SetupAttachment(GetMesh(), TEXT("hand_r"));
@@ -74,6 +74,7 @@ void AVSlicesCharacter::Tick(float DeltaSeconds)
 
 void AVSlicesCharacter::Move(const FInputActionValue& Value)
 {
+	if(bLedgeGrab) return;
 	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
@@ -109,8 +110,21 @@ void AVSlicesCharacter::Look(const FInputActionValue& Value)
 
 	if (Controller != nullptr)
 	{
-		// add yaw and pitch input to controller
-		AddControllerYawInput(LookAxisVector.X);
+		if(bLedgeGrab) 
+		{
+			FRotator ControlRotation = Controller->GetControlRotation();
+			FRotator ActorRotation = GetActorRotation();
+			float RelativeYaw = FRotator::NormalizeAxis(ControlRotation.Yaw - ActorRotation.Yaw);
+			float NewRelativeYaw = FMath::Clamp(RelativeYaw + LookAxisVector.X, -60.0f, 60.0f);
+          
+			ControlRotation.Yaw = ActorRotation.Yaw + NewRelativeYaw;
+			Controller->SetControlRotation(ControlRotation);
+		}
+		else
+		{
+			AddControllerYawInput(LookAxisVector.X); //TODO: Clamp look down
+		}
+       
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
 }
@@ -166,35 +180,21 @@ void AVSlicesCharacter::StopCrouch()
 
 void AVSlicesCharacter::Jump() 
 {
+	if(LedgeComponent && bLedgeGrab) //ledge grabbing
+	{
+		LedgeComponent->OnJump();
+		//continue normal jump
+	}
 	if (WallRunComponent->IsWallRunning()) //jump off wall run
 	{
 		WallRunComponent->Jump();
 		GetWorldTimerManager().SetTimer(JumpCooldownTimerHandle,this,&AVSlicesCharacter::ResetJumpCooldown, JumpCooldownTime,false);
 		return;
 	}
-	
-	if (LedgeSwingComponent && LedgeSwingComponent->IsHanging())
-	{
-		LedgeSwingComponent->Jump();
-		return;
-	}
 	if (VaultComponent && !VaultComponent->IsVaulting() && VaultComponent->TryVault(GetIsSprinting()))return; //check vaulting
 	if (!bCanJump) return;
     
 	Super::Jump(); 
-    
-	/* if (LedgeSwingComponent)
-	// {
-	// 	GetWorld()->GetTimerManager().SetTimer(LedgeDetectionTimerHandle, [this]()
-	// 	{
-	// 		if (!GetCharacterMovement()->IsFalling() || LedgeSwingComponent->IsHanging())
-	// 		{
-	// 			GetWorld()->GetTimerManager().ClearTimer(LedgeDetectionTimerHandle);
-	// 			return;
-	// 		}
-	// 		LedgeSwingComponent->TryGrab();
-	// 	}, 0.01f, true); 
-	// } */
     
 	if (GetIsSprinting() && GetVelocity().Length()>=MaxJogSpeed) //boost if sprinting
 	{

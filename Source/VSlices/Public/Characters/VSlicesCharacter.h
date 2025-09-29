@@ -19,7 +19,7 @@ class AVSlicesCharacter : public ACharacter
 	class USpringArmComponent* CameraBoom;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera;
-	
+	//COMPONENTS
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	class USprintComponent* SprintComponent;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
@@ -37,13 +37,13 @@ class AVSlicesCharacter : public ACharacter
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="GrapplingGun", meta = (AllowPrivateAccess = "true"))
 	class UCableComponent* Cable;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	class ULedgeSwingComponent* LedgeSwingComponent;
-	
+	class ULedgeComponent* LedgeComponent;
+	//JUMP fields
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	float JumpCooldownTime = 1.f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	float LaunchBoost = 600.f;
-
+	//Speed fields
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement Speed", meta = (AllowPrivateAccess = "true"))
 	float MaxJogSpeed = 600.0f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement Speed", meta = (AllowPrivateAccess = "true"))
@@ -96,6 +96,11 @@ public:
 	ULandingComponent* GetLandingComponent() const;
 	UWallRunComponent* GetWallRunComponent() const;
 
+	UFUNCTION(BlueprintCallable, Category="Movement")
+	FORCEINLINE void SetGrabLedge(const bool bSet)  { bLedgeGrab = bSet; }
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Movement")
+	FORCEINLINE bool GetLedgeGrab() const { return bLedgeGrab; }
+	
 	struct FSlopeInfo GetSlopeInfo() const;
 
 	FORCEINLINE float GetMaxJogSpeed() const { return MaxJogSpeed; }
@@ -111,6 +116,7 @@ public:
 	bool GetIsSliding() const;
 
 private:
+	bool bLedgeGrab = false;
 	bool bCanJump = true;
 	bool bInCoyoteTime = true;
     float CoyoteTimeRemaining;
