@@ -97,7 +97,7 @@ public:
 	UWallRunComponent* GetWallRunComponent() const;
 
 	UFUNCTION(BlueprintCallable, Category="Movement")
-	FORCEINLINE void SetGrabLedge(const bool bSet)  { bLedgeGrab = bSet; }
+	FORCEINLINE void SetLedgeGrab(const bool bSet)  { bLedgeGrab = bSet; }
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Movement")
 	FORCEINLINE bool GetLedgeGrab() const { return bLedgeGrab; }
 	
