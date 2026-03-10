@@ -60,7 +60,7 @@ bool UWallRunComponent::CheckForWall(const FHitResult& Hit)
 		return false;
 
 	float WallDot = FVector::DotProduct(Hit.Normal, OwnerCharacter->GetActorRightVector());
-	Direction = (WallDot > 0) ? EWallRunDir::Right : EWallRunDir::Left;
+	Direction = (WallDot > 0) ? EWallRunDir::Left : EWallRunDir::Right;
 	WallDot = FMath::Abs(WallDot);
 	if (WallDot < MinWallAngleDot)
 		return false;

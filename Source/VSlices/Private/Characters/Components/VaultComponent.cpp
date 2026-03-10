@@ -55,11 +55,10 @@ void UVaultComponent::UpdateVaultMotion(const float DeltaTime) const
     {
         // Use velocity-based movement
         const FVector CurrentLocation = OwnerCharacter->GetActorLocation();
-        const FVector Direction = (TargetLocation - CurrentLocation).GetSafeNormal();
-        const float Distance = FVector::Dist(CurrentLocation, TargetLocation);
-        const float Speed = Distance / (VaultLerpTime * (1.0f - VaultLerpAlpha + 0.01f));
-        
-        MovementComponent->Velocity = Direction * FMath::Min(Speed, 1000.f);
+        const FVector ToTarget = TargetLocation - CurrentLocation;
+        const float TimeRemaining = VaultLerpTime * (1.0f - VaultLerpAlpha + 0.01f);
+
+        MovementComponent->Velocity = (ToTarget / TimeRemaining).GetClampedToMaxSize(1000.f);
     }
     
     // Handle rotation

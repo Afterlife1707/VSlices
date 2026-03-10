@@ -57,41 +57,32 @@ FSlopeInfo USlopeComponent::GetSlopeInfo()
 
 void USlopeComponent::UpdateSlopeInfo()
 {
-    // Reset slope info
     CachedSlopeInfo = FSlopeInfo();
     
     if (!MovementComponent || !OwnerCharacter)
-    {
-        LOG_WARNING("Missing MovementComponent or OwnerCharacter");
         return;
-    }
     
     const FHitResult& FloorHit = MovementComponent->CurrentFloor.HitResult;
     if (!FloorHit.IsValidBlockingHit()) 
-    {
-       // LOG_INFO("No valid floor hit");
         return;
-    }
     
     const FVector FloorNormal = FloorHit.ImpactNormal;
+    
     const float FloorDotUp = FVector::DotProduct(FloorNormal, FVector::UpVector);
+    
     CachedSlopeInfo.SlopeAngle = FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(FloorDotUp, 0.0f, 1.0f)));
-    
-    //LOG_INFO("Floor angle: %.1f degrees", CachedSlopeInfo.SlopeAngle);
-    
     if (CachedSlopeInfo.SlopeAngle <= MinSlopeAngle) 
-    {
-       // LOG_INFO("Slope too shallow (%.1f <= %.1f)", CachedSlopeInfo.SlopeAngle, MinSlopeAngle);
         return;
-    }
     
     CachedSlopeInfo.bIsOnSlope = true;
     
-    const FVector SlopeDirection = FVector::CrossProduct(FloorNormal, 
-        FVector::CrossProduct(FloorNormal, FVector::UpVector)).GetSafeNormal();
+    const FVector SlopeDirection = (FVector::UpVector - FloorNormal * FloorDotUp).GetSafeNormal();
+   
     CachedSlopeInfo.FacingAlignment = FVector::DotProduct(OwnerCharacter->GetActorForwardVector(), SlopeDirection);
     
-    // Determine uphill/downhill
     CachedSlopeInfo.bIsUphill = CachedSlopeInfo.FacingAlignment < -UphillThreshold;
     CachedSlopeInfo.bIsDownhill = CachedSlopeInfo.FacingAlignment > DownhillThreshold;
 }
+
+// Alternative : more expensive (50%)
+//const FVector SlopeDirection = FVector::CrossProduct(  FVector::CrossProduct(FloorNormal, FVector::RightVector),FloorNormal).GetSafeNormal();
