@@ -6,6 +6,27 @@ UParkourComponentBase::UParkourComponentBase()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
+#if WITH_EDITOR
+void UParkourComponentBase::OnComponentCreated()
+{
+	Super::OnComponentCreated();
+
+	if (const AActor* Owner = GetOwner())
+	{
+		TArray<UActorComponent*> Components;
+		Owner->GetComponents(GetClass(), Components);
+
+		if (Components.Num() > 1)
+		{
+			LOG_WARNING("Duplicate %s detected on %s - only one is allowed. Removing duplicate.", *GetClass()->GetName(), *Owner->GetName());
+			SetFlags(RF_Transient);
+			UnregisterComponent();
+			DestroyComponent();
+		}
+	}
+}
+#endif
+
 void UParkourComponentBase::BeginPlay()
 {
 	Super::BeginPlay();

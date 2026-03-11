@@ -12,7 +12,7 @@ class AVSlicesCharacter;
 class USprintComponent;
 class UAnimMontage;
 
-UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
+UCLASS(ClassGroup=(Parkour), meta=(BlueprintSpawnableComponent))
 class VSLICES_API ULandingComponent : public UParkourComponentBase
 {
     GENERATED_BODY()

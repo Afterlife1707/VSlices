@@ -4,7 +4,7 @@
 #include "Characters/Components/ParkourComponentBase.h"
 #include "LedgeComponent.generated.h"
 
-UCLASS()
+UCLASS(ClassGroup=(Parkour), meta=(BlueprintSpawnableComponent))
 class VSLICES_API ULedgeComponent : public UParkourComponentBase
 {
 	GENERATED_BODY()

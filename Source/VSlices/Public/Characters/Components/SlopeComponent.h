@@ -28,7 +28,7 @@ struct FSlopeInfo
 	float FacingAlignment = 0.0f; // -1 = uphill, +1 = downhill, 0 = sideways
 };
 
-UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
+UCLASS(ClassGroup=(Parkour), meta=(BlueprintSpawnableComponent))
 class VSLICES_API USlopeComponent : public UParkourComponentBase
 {
 	GENERATED_BODY()

@@ -4,7 +4,7 @@
 #include "ParkourComponentBase.h"
 #include "GrapplingHookComponent.generated.h"
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS(ClassGroup=(Parkour), meta=(BlueprintSpawnableComponent))
 class VSLICES_API UGrapplingHookComponent : public UParkourComponentBase
 {
     GENERATED_BODY()

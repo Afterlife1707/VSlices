@@ -11,7 +11,7 @@ enum class EWallRunDir :uint8
 	Left, Right, None
 };
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS(ClassGroup=(Parkour), meta=(BlueprintSpawnableComponent))
 class VSLICES_API UWallRunComponent : public UParkourComponentBase
 {
 	GENERATED_BODY()

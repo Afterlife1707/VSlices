@@ -26,7 +26,7 @@ struct FVaultableObstacle
 	bool bIsThick;       // true = climb, false = vault
 };
 
-UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
+UCLASS(ClassGroup=(Parkour), meta=(BlueprintSpawnableComponent))
 class VSLICES_API UVaultComponent : public UParkourComponentBase
 {
 	GENERATED_BODY()

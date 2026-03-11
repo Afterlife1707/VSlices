@@ -6,16 +6,18 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "ParkourComponentBase.generated.h"
 
-UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
+UCLASS(Abstract, ClassGroup=(Parkour))
 class VSLICES_API UParkourComponentBase : public UActorComponent
 {
-public:
 	GENERATED_BODY()
-	
+
+public:
 	UParkourComponentBase();
-	
+
 protected:
+	virtual void OnComponentCreated() override;
 	virtual void BeginPlay() override;
+	
 	UPROPERTY()
 	class AVSlicesCharacter* OwnerCharacter;
 	UPROPERTY()
