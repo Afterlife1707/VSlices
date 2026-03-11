@@ -107,11 +107,10 @@ bool UVaultComponent::TryVault(const bool bWasSprinting)
 
 bool UVaultComponent::FindVaultableObstacle(FVaultableObstacle& OutObstacle, const bool bWasSprinting) const
 {
-    
     const FVector PlayerLocation = OwnerCharacter->GetActorLocation();
     const FVector ForwardVector = OwnerCharacter->GetActorForwardVector();
     const float CurrentTraceDistance = TraceDistance * (bWasSprinting ? 3.0f : 1.0f);
-    LOG_INFO("TryVault - TraceDistance: %.1f (sprinting: %s)", CurrentTraceDistance, bWasSprinting ? TEXT("Yes") : TEXT("No"));
+    
     // Find closest obstacle from multi-height traces
     FHitResult BestHit;
     float ClosestDistance = MAX_FLT;
@@ -140,7 +139,6 @@ bool UVaultComponent::FindVaultableObstacle(FVaultableObstacle& OutObstacle, con
 bool UVaultComponent::AnalyzeObstacle(const FHitResult& Hit, FVaultableObstacle& OutObstacle) const
 {
     const bool bIsWall = Hit.Normal.Z < 0.5f;
-    LOG_INFO("Hit normal Z: %.2f -> %s", Hit.Normal.Z, bIsWall ? TEXT("WALL") : TEXT("PLATFORM"));
     FVector ObstacleTop;
     float ObstacleHeight;
     
@@ -161,7 +159,7 @@ bool UVaultComponent::AnalyzeObstacle(const FHitResult& Hit, FVaultableObstacle&
         return false;
     }
     
-    LOG_INFO("ObstacleHeight: %.1f | Range: [%.1f - %.1f]", ObstacleHeight, MinHeightForShortVault, MaxHeightForTraverse);
+    LOG_INFO("Obstacle height %.2f ", ObstacleHeight);
     if (!ValidateLandingSpace(ObstacleTop))
     {
         LOG_INFO("Failed landing space validation");
@@ -238,11 +236,6 @@ bool UVaultComponent::ExecuteVault(const FVaultableObstacle& Obstacle)
     
     const FVector DirectionToTarget = (VaultTarget - OwnerCharacter->GetActorLocation()).GetSafeNormal2D();
     StartVault(VaultType, VaultTarget, DirectionToTarget.Rotation());
-    LOG_INFO("Executing vault - Type: %s | Height: %.1f | Thick: %s",
-        *UEnum::GetValueAsString(VaultType),
-        Obstacle.Height,
-        Obstacle.bIsThick ? TEXT("Yes") : TEXT("No"));
-
     return true;
 }
 
@@ -268,10 +261,6 @@ void UVaultComponent::StartVault(const EVaultType VaultType, const FVector& Targ
         VaultLerpTime = OwnerCharacter->PlayAnimMontage(MontageToPlay);
         if (VaultLerpTime <= 0.f) VaultLerpTime = 1.f;
     }
-    else
-    {
-        WarnMissingAsset("Vault Anim");
-    }
 }
 
 void UVaultComponent::FinishVault()
@@ -292,8 +281,7 @@ bool UVaultComponent::IsObstacleThick(const FHitResult& Hit, const FVector& Wall
     
     FHitResult ThicknessHit;
     const bool bIsThick = PerformTrace(ThicknessHit, Start, End);
-    LOG_INFO("Thickness check - ThicknessForClimb: %.1f | Result: %s", ThicknessForClimb, bIsThick ? TEXT("THICK") : TEXT("THIN"));
-
+    
    // DrawDebugLine(GetWorld(), Start, End, FColor::Green, false, 2.0f, 0, 2.0f);
    // if (bIsThick) DrawDebugSphere(GetWorld(), ThicknessHit.Location, 12.0f, 12, FColor::Green, false, 2.0f);
     

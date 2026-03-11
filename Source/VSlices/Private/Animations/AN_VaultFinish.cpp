@@ -1,9 +1,9 @@
-﻿#include "Animations/VaultFinishNotify.h"
+﻿#include "Animations/AN_VaultFinish.h"
 
 #include "Characters/Components/VaultComponent.h"
 #include "Characters/VSlicesCharacter.h"
 
-void UVaultFinishNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
+void UAN_VaultFinish::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
 	Super::Notify(MeshComp, Animation, EventReference);
 	if (MeshComp)

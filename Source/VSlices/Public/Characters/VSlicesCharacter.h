@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "VSlicesCharacter.generated.h"
 
+enum class EFoot : uint8;
 class USprintComponent;
 class USlideComponent;
 class USlopeComponent;
@@ -87,6 +88,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Movement")
 	void ShootGrapplingHook() const;
 
+	// Footsteps
+	void OnFootstep(const EFoot Foot);
+	
 	UFUNCTION(BlueprintCallable, Category="Movement|Validation")
 	void WarnMissingComponent(TSubclassOf<UActorComponent> ComponentClass) const;
 	
@@ -143,6 +147,9 @@ private:
 	bool bCanJump = true;
 	bool bInCoyoteTime = true;
 	float CoyoteTimeRemaining = 0.f;
+	
+	UPROPERTY(EditDefaultsOnly, Category="Footsteps")
+	class UFootstepData* FootstepData = nullptr;
 
 	FTimerHandle JumpCooldownTimerHandle;
 	mutable TSet<FString> AlreadyWarned;

@@ -2,10 +2,10 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimNotifies/AnimNotify.h"
-#include "VaultFinishNotify.generated.h"
+#include "AN_VaultFinish.generated.h"
 
 UCLASS()
-class VSLICES_API UVaultFinishNotify : public UAnimNotify
+class VSLICES_API UAN_VaultFinish : public UAnimNotify
 {
 	GENERATED_BODY()
 

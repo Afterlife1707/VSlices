@@ -1,4 +1,5 @@
 #include "Characters/VSlicesCharacter.h"
+#include "Animations/AN_Footstep.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -6,6 +7,7 @@
 #include "GameFramework/Controller.h"
 #include "InputActionValue.h"
 #include "CableComponent.h"
+#include "FootstepData.h"
 #include "Characters/Components/SprintComponent.h"
 #include "Characters/Components/SlideComponent.h"
 #include "Characters/Components/SlopeComponent.h"
@@ -14,6 +16,7 @@
 #include "Characters/Components/WallRunComponent.h"
 #include "Characters/Components/GrapplingHookComponent.h"
 #include "Characters/Components/LedgeComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -157,6 +160,32 @@ void AVSlicesCharacter::ShootGrapplingHook() const
 {
 	if (!GrapplingHookComponent) { WarnMissingComponent(UGrapplingHookComponent::StaticClass()); return; }
 	GrapplingHookComponent->TryShoot();
+}
+
+void AVSlicesCharacter::OnFootstep(const EFoot Foot)
+{
+	if (!FootstepData)
+	{
+		LOG_ERROR("Missing Footsteps Data"); 
+		return;
+	}
+
+	const FName BoneName = Foot == EFoot::Left ? FootstepData->LeftFootBone : FootstepData->RightFootBone;
+	const FVector FootLocation = GetMesh()->GetBoneLocation(BoneName);
+
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+	Params.bReturnPhysicalMaterial = true;
+
+	const FVector TraceStart = FootLocation;
+	const FVector TraceEnd = FootLocation + FVector(0.f, 0.f, -50.f);
+
+	EPhysicalSurface Surface = SurfaceType_Default;
+	if (FHitResult Hit; GetWorld()->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd, ECC_Visibility, Params))
+		if (Hit.PhysMaterial.IsValid())
+			Surface = Hit.PhysMaterial->SurfaceType;
+	USoundBase* Sound = bIsCrouched ? FootstepData->GetCrouchSoundForSurface(Surface) : FootstepData->GetSoundForSurface(Surface);
+	UGameplayStatics::PlaySoundAtLocation(this, Sound, FootLocation);
 }
 
 void AVSlicesCharacter::ToggleCrouch()
