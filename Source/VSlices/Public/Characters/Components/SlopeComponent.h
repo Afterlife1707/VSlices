@@ -51,7 +51,7 @@ protected:
 	float MaxWalkableDownhillAngle = 40.0f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Slope", meta = (ClampMin = "30.0", ClampMax = "60.0"))
 	float MaxSlidableDownhillAngle = 50.0f;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Slope Settings")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Slope")
 	float UphillThreshold = 0.1f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Slope") 
 	float DownhillThreshold = 0.1f;

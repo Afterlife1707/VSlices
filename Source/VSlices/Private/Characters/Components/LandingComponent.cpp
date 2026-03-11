@@ -44,10 +44,16 @@ void ULandingComponent::HandleLanding(const float FallDistance) const
 	if (FallDistance >= HardLandingMinFallDistance)
 	{
 		MovementComponent->DisableMovement();
-		OwnerCharacter->PlayAnimMontage(HardLandAnim);
+		if (HardLandAnim)
+			OwnerCharacter->PlayAnimMontage(HardLandAnim);
+		else
+			WarnMissingAsset("HardLandAnim");
 	}
 	else if (FallDistance >= RollMinFallDistance && LastVelocity >= MaxJogSpeed - 50.f)
 	{
-		OwnerCharacter->PlayAnimMontage(RollAnim);
+		if (RollAnim)
+			OwnerCharacter->PlayAnimMontage(RollAnim);
+		else
+			WarnMissingAsset("RollAnim");
 	}
 }

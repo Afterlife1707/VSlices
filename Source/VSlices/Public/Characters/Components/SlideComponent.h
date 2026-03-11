@@ -20,6 +20,11 @@ class VSLICES_API USlideComponent : public UParkourComponentBase
 public:
 	USlideComponent();
 
+	UPROPERTY(EditAnywhere, Category="Slide|Audio")
+	USoundBase* SlideLoopSound;
+	UPROPERTY(EditAnywhere, Category="Slide|Audio")
+	float SoundStartDelay = 0.42f;
+	
 	UFUNCTION(BlueprintCallable, Category = "Slide")
 	void StartSlide();
 	
@@ -31,6 +36,7 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "Slide")
 	void HandleSlideTick(float DeltaSeconds);
+	void PlaySlideSound();
 
 protected:
 	// Slide settings
@@ -56,7 +62,9 @@ private:
 	float SlideElapsed = 0.0f;
 	float ActualSlideDuration = 0.0f;
 	FTimerHandle SlideTimerHandle;
-	
+	FTimerHandle SoundDelayTimerHandle;
+	UPROPERTY()
+	UAudioComponent* SlideLoopAudioComponent;
 	// Cached speed for restoration
 	float CachedCrouchSpeed = 0.0f;
 };

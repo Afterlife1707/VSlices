@@ -44,3 +44,12 @@ void UParkourComponentBase::BeginPlay()
 		return;
 	}
 }
+
+void UParkourComponentBase::WarnMissingAsset(const FString& AssetName) const
+{
+	if (!AlreadyWarned.Contains(AssetName))
+	{
+		AlreadyWarned.Add(AssetName);
+		LOG_WARNING("%s on %s: Missing asset - %s. Assign it in the Blueprint Details panel.", *GetClass()->GetName(), *GetOwner()->GetName(), *AssetName);
+	}
+}

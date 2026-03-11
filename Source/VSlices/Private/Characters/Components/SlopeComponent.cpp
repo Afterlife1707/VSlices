@@ -80,8 +80,8 @@ void USlopeComponent::UpdateSlopeInfo()
    
     CachedSlopeInfo.FacingAlignment = FVector::DotProduct(OwnerCharacter->GetActorForwardVector(), SlopeDirection);
     
-    CachedSlopeInfo.bIsUphill = CachedSlopeInfo.FacingAlignment < -UphillThreshold;
-    CachedSlopeInfo.bIsDownhill = CachedSlopeInfo.FacingAlignment > DownhillThreshold;
+    CachedSlopeInfo.bIsUphill = CachedSlopeInfo.FacingAlignment > UphillThreshold;
+    CachedSlopeInfo.bIsDownhill = CachedSlopeInfo.FacingAlignment < -DownhillThreshold;
 }
 
 // Alternative : more expensive (50%)

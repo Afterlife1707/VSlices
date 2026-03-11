@@ -10,13 +10,18 @@ UGrapplingHookComponent::UGrapplingHookComponent()
 {
     PrimaryComponentTick.bCanEverTick = true;
     PrimaryComponentTick.TickInterval = 0.1f;
-    GrapplePullAudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("GrapplePullAudio"));
-    GrapplePullAudioComponent->bAutoActivate = false;
 }
 
 void UGrapplingHookComponent::BeginPlay()
 {
     Super::BeginPlay();
+    
+    GrapplePullAudioComponent = NewObject<UAudioComponent>(OwnerCharacter, TEXT("GrapplePullAudio"));
+    GrapplePullAudioComponent->SetupAttachment(OwnerCharacter->GetMesh());
+    GrapplePullAudioComponent->bAutoActivate = false;
+    if (GrapplePull)
+        GrapplePullAudioComponent->SetSound(GrapplePull);
+    GrapplePullAudioComponent->RegisterComponent();
     
 	CurrentCooldown = GrappleCooldown;
     OriginalCapsuleHalfHeight = OwnerCharacter->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
@@ -61,6 +66,8 @@ void UGrapplingHookComponent::TryShoot()
     if (bIsGrappling) return;
     if (GrappleStart)
         UGameplayStatics::PlaySoundAtLocation(GetWorld(), GrappleStart, OwnerCharacter->GetActorLocation());
+    else
+        WarnMissingAsset("GrappleStart Audio");
     const APlayerController* PC = Cast<APlayerController>(OwnerCharacter->GetController());
     if (!PC) return;
     
@@ -77,12 +84,12 @@ void UGrapplingHookComponent::TryShoot()
     FHitResult Hit;
     if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_WorldStatic, TraceParams))
     {
-        UE_LOG(LogTemp, Warning, TEXT("Grapple HIT at: %s"), *Hit.Location.ToString());
+        LOG_WARNING("Grapple HIT at: %s", *Hit.Location.ToString());
         StartGrapple(Hit.Location);
     }
     else
     {
-        UE_LOG(LogTemp, Warning, TEXT("Grapple MISS - no target found"));
+        LOG_WARNING("Grapple MISS - no target found");
     }
     
     CurrentCooldown = GrappleCooldown;
@@ -94,9 +101,12 @@ void UGrapplingHookComponent::StartGrapple(const FVector& TargetLocation)
     GrappleLocation = TargetLocation;
     if (GrappleAttach)
         UGameplayStatics::PlaySoundAtLocation(GetWorld(), GrappleAttach, TargetLocation);
-    if (GrapplePullAudioComponent && GrapplePull)
+    else
+        WarnMissingAsset("GrappleAttach audio");
+    if (GrapplePull)
         GrapplePullAudioComponent->Play();
-    
+    else
+        WarnMissingAsset("GrapplePull Audio");
     OwnerCharacter->GetCapsuleComponent()->SetCapsuleHalfHeight(OriginalCapsuleHalfHeight/2);
     // Initial upward boost
     OwnerCharacter->LaunchCharacter(FVector(0, 0, InitialUpwardBoost), true, true);
@@ -117,6 +127,8 @@ void UGrapplingHookComponent::ReleaseGrapple()
     if (!bIsGrappling) return;
     if (GrapplePullAudioComponent && GrapplePullAudioComponent->IsPlaying())
         GrapplePullAudioComponent->Stop();
+    else
+        WarnMissingAsset("Grapple Audio");
     OwnerCharacter->GetCapsuleComponent()->SetCapsuleHalfHeight(OriginalCapsuleHalfHeight);
     bIsGrappling = false;
     MovementComponent->SetMovementMode(MOVE_Walking);

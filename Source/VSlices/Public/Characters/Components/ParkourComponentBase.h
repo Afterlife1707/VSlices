@@ -17,6 +17,8 @@ public:
 protected:
 	virtual void OnComponentCreated() override;
 	virtual void BeginPlay() override;
+	void WarnMissingAsset(const FString& AssetName) const;
+	mutable TSet<FString> AlreadyWarned;
 	
 	UPROPERTY()
 	class AVSlicesCharacter* OwnerCharacter;
