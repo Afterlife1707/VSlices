@@ -39,7 +39,6 @@ AVSlicesCharacter::AVSlicesCharacter()
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
-
 	Cable = CreateDefaultSubobject<UCableComponent>(TEXT("GrappleCable"));
 	Cable->SetupAttachment(GetMesh(), TEXT("hand_r"));
 	Cable->SetVisibility(false);
@@ -107,27 +106,42 @@ void AVSlicesCharacter::Move(const FInputActionValue& Value)
 
 void AVSlicesCharacter::Look(const FInputActionValue& Value)
 {
-	if (VaultComponent && VaultComponent->IsVaulting()) return;
+	if (!Controller) return;
 
-	FVector2D LookAxisVector = Value.Get<FVector2D>();
-	if (Controller == nullptr) return;
+	const FVector2D LookAxis = Value.Get<FVector2D>();
+	FRotator ControlRotation = Controller->GetControlRotation();
 
 	if (bLedgeGrab)
 	{
-		FRotator ControlRotation = Controller->GetControlRotation();
-		FRotator ActorRotation = GetActorRotation();
-		const float RelativeYaw = FRotator::NormalizeAxis(ControlRotation.Yaw - ActorRotation.Yaw);
-		const float NewRelativeYaw = FMath::Clamp(RelativeYaw + LookAxisVector.X, -60.0f, 60.0f);
-
-		ControlRotation.Yaw = ActorRotation.Yaw + NewRelativeYaw;
+		const float ClampedYaw = GetClampedRelativeYaw(ControlRotation, GetActorRotation(), LookAxis.X, 60.f);
+		ControlRotation.Yaw = GetActorRotation().Yaw + ClampedYaw;
+		ControlRotation.Pitch = FMath::Clamp(ControlRotation.Pitch - LookAxis.Y, -90.f, 90.f);
 		Controller->SetControlRotation(ControlRotation);
-	}
-	else
-	{
-		AddControllerYawInput(LookAxisVector.X);
+		return;
 	}
 
-	AddControllerPitchInput(LookAxisVector.Y);
+	if (VaultComponent && VaultComponent->IsVaulting())
+	{
+		const FRotator VaultRotation = VaultComponent->GetVaultTargetRotation();
+		const float ClampedYaw = GetClampedRelativeYaw(ControlRotation, VaultRotation, LookAxis.X, 30.f);
+
+		const float NormalizedPitch = FRotator::NormalizeAxis(ControlRotation.Pitch);
+		const float SmoothedPitch = FMath::FInterpTo(NormalizedPitch, FMath::Clamp(NormalizedPitch, -45.f, 45.f), GetWorld()->GetDeltaSeconds(), 10.f);
+
+		ControlRotation.Yaw = VaultRotation.Yaw + ClampedYaw;
+		ControlRotation.Pitch = FMath::Clamp(SmoothedPitch - LookAxis.Y, -45.f, 45.f);
+		Controller->SetControlRotation(ControlRotation);
+		return;
+	}
+
+	AddControllerYawInput(LookAxis.X);
+	AddControllerPitchInput(LookAxis.Y);
+}
+
+float AVSlicesCharacter::GetClampedRelativeYaw(const FRotator& ControlRot, const FRotator& BaseRot, const float YawInput, const float ClampAngle)
+{
+	const float RelativeYaw = FRotator::NormalizeAxis(ControlRot.Yaw - BaseRot.Yaw);
+	return FMath::Clamp(RelativeYaw + YawInput, -ClampAngle, ClampAngle);
 }
 
 #pragma region COMPONENTS
@@ -206,6 +220,14 @@ void AVSlicesCharacter::StopCrouch()
 	UnCrouch();
 }
 
+void AVSlicesCharacter::WarnMissingComponent(const TSubclassOf<UActorComponent> ComponentClass) const
+{
+	if (const FString ClassName = ComponentClass ? ComponentClass->GetName() : TEXT("Unknown Component"); !AlreadyWarned.Contains(ClassName))
+	{
+		AlreadyWarned.Add(ClassName);
+		LOG_WARNING("%s: %s is missing. Add it in the Blueprint Components panel.", *GetName(), *ClassName);
+	}
+}
 #pragma endregion COMPONENTS
 
 #pragma region JUMP
@@ -331,8 +353,7 @@ void AVSlicesCharacter::Landed(const FHitResult& Hit)
 
 FSlopeInfo AVSlicesCharacter::GetSlopeInfo() const
 {
-	check(SlopeComponent);
-	return SlopeComponent->GetSlopeInfo();
+	return SlopeComponent ? SlopeComponent->GetSlopeInfo() : FSlopeInfo{};
 }
 
 bool AVSlicesCharacter::GetIsSprinting() const
@@ -343,15 +364,6 @@ bool AVSlicesCharacter::GetIsSprinting() const
 bool AVSlicesCharacter::GetIsSliding() const
 {
 	return SlideComponent ? SlideComponent->IsSliding() : false;
-}
-
-void AVSlicesCharacter::WarnMissingComponent(const TSubclassOf<UActorComponent> ComponentClass) const
-{
-	if (const FString ClassName = ComponentClass ? ComponentClass->GetName() : TEXT("Unknown Component"); !AlreadyWarned.Contains(ClassName))
-	{
-		AlreadyWarned.Add(ClassName);
-		LOG_WARNING("%s: %s is missing. Add it in the Blueprint Components panel.", *GetName(), *ClassName);
-	}
 }
 
 #pragma endregion GETTERS

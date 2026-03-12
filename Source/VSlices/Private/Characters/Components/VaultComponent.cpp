@@ -270,6 +270,8 @@ void UVaultComponent::FinishVault()
     bIsVaulting = false;
     VaultLerpAlpha = 0.f;
     
+    OwnerCharacter->SetActorLocation(VaultTargetLocation, true,  nullptr, ETeleportType::None);
+
     OwnerCharacter->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
     MovementComponent->SetMovementMode(MOVE_Walking);
 }

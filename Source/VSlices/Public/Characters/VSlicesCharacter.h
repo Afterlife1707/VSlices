@@ -147,6 +147,7 @@ private:
 	bool bCanJump = true;
 	bool bInCoyoteTime = true;
 	float CoyoteTimeRemaining = 0.f;
+	static float GetClampedRelativeYaw(const FRotator& ControlRot, const FRotator& BaseRot, const float YawInput, const float ClampAngle);
 	
 	UPROPERTY(EditDefaultsOnly, Category="Footsteps")
 	class UFootstepData* FootstepData = nullptr;

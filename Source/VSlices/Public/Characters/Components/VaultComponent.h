@@ -40,6 +40,8 @@ public:
 
 	bool TryVault(const bool bWasSprinting);
 	bool IsVaulting() const { return bIsVaulting; }
+	
+	FRotator GetVaultTargetRotation() const { return VaultTargetRotation; }
 
 	UPROPERTY(EditDefaultsOnly, Category="Vaulting|Animations")
 	UAnimMontage* VaultShortMontage;

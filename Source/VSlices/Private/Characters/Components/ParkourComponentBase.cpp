@@ -4,6 +4,7 @@
 UParkourComponentBase::UParkourComponentBase()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+	bAutoActivate = true;
 }
 
 #if WITH_EDITOR
@@ -15,12 +16,9 @@ void UParkourComponentBase::OnComponentCreated()
 	{
 		TArray<UActorComponent*> Components;
 		Owner->GetComponents(GetClass(), Components);
-
 		if (Components.Num() > 1)
 		{
-			LOG_WARNING("Duplicate %s detected on %s - only one is allowed. Removing duplicate.", *GetClass()->GetName(), *Owner->GetName());
-			SetFlags(RF_Transient);
-			UnregisterComponent();
+			LOG_WARNING("Duplicate %s detected - only one is allowed. Remove it from the Components panel.", *GetClass()->GetName());
 			DestroyComponent();
 		}
 	}
@@ -29,6 +27,7 @@ void UParkourComponentBase::OnComponentCreated()
 
 void UParkourComponentBase::BeginPlay()
 {
+	if (!IsActive()) return;
 	Super::BeginPlay();
 
 	OwnerCharacter = Cast<AVSlicesCharacter>(GetOwner());
