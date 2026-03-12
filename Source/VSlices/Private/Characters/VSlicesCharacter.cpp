@@ -114,8 +114,8 @@ void AVSlicesCharacter::Look(const FInputActionValue& Value)
 	if (bLedgeGrab)
 	{
 		const float ClampedYaw = GetClampedRelativeYaw(ControlRotation, GetActorRotation(), LookAxis.X, 60.f);
-		ControlRotation.Yaw = GetActorRotation().Yaw + ClampedYaw;
-		ControlRotation.Pitch = FMath::Clamp(ControlRotation.Pitch - LookAxis.Y, -90.f, 90.f);
+		ControlRotation.Yaw   = GetActorRotation().Yaw + ClampedYaw;
+		ControlRotation.Pitch = FMath::Clamp(ControlRotation.Pitch - LookAxis.Y, 45.f, 90.f); //to prevent looking down
 		Controller->SetControlRotation(ControlRotation);
 		return;
 	}
@@ -334,6 +334,12 @@ void AVSlicesCharacter::CalcCamera(float DeltaTime, FMinimalViewInfo& OutResult)
 
 	if (WallRunComponent && WallRunComponent->ShouldCameraTilt())
 		OutResult.Rotation.Roll += WallRunComponent->GetCameraTilt();
+	
+	const float TargetOffsetY = bLedgeGrab ? 45.f : 0.f; //offset cam boom since default camera is positioned too much in front(to prevent clipping)
+	if (FMath::IsNearlyEqual(CameraBoom->TargetOffset.Y, TargetOffsetY, 0.1f))
+		return;
+	
+	CameraBoom->TargetOffset.Y = FMath::FInterpTo(CameraBoom->TargetOffset.Y, TargetOffsetY, DeltaTime, 5.f);
 }
 
 void AVSlicesCharacter::Landed(const FHitResult& Hit)
