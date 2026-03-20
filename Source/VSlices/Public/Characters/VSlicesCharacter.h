@@ -141,12 +141,15 @@ public:
 	ULedgeComponent* GetLedgeComponent() const { return LedgeComponent; }
 
 	struct FSlopeInfo GetSlopeInfo() const;
-
+	
+	void SetOrient(const bool bValue)	{bOrient = bValue;}
 private:
 	bool bLedgeGrab = false;
 	bool bCanJump = true;
 	bool bInCoyoteTime = true;
 	float CoyoteTimeRemaining = 0.f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Movement", meta=(AllowPrivateAccess="true"))
+	bool bOrient = false;
 	static float GetClampedRelativeYaw(const FRotator& ControlRot, const FRotator& BaseRot, const float YawInput, const float ClampAngle);
 	
 	UPROPERTY(EditDefaultsOnly, Category="Footsteps")

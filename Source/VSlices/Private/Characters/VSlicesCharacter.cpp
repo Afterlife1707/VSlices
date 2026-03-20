@@ -7,7 +7,7 @@
 #include "GameFramework/Controller.h"
 #include "InputActionValue.h"
 #include "CableComponent.h"
-#include "FootstepData.h"
+#include "World/FootstepData.h"
 #include "Characters/Components/SprintComponent.h"
 #include "Characters/Components/SlideComponent.h"
 #include "Characters/Components/SlopeComponent.h"
@@ -106,7 +106,7 @@ void AVSlicesCharacter::Move(const FInputActionValue& Value)
 
 void AVSlicesCharacter::Look(const FInputActionValue& Value)
 {
-	if (!Controller) return;
+	if (!Controller || !FollowCamera->bUsePawnControlRotation) return;
 
 	const FVector2D LookAxis = Value.Get<FVector2D>();
 	FRotator ControlRotation = Controller->GetControlRotation();
