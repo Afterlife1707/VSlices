@@ -145,11 +145,25 @@ void APortal::Teleport() const
     LocalPos.Y *= -1;
     const FVector NewLocation = LinkedPortal->GetActorTransform().TransformPosition(LocalPos);
 
-    Player->SetActorTransform(FTransform(GetNewRotation(Player->GetActorRotation()), NewLocation), false, nullptr, ETeleportType::TeleportPhysics);
-    PC->SetControlRotation(GetNewRotation(PC->GetControlRotation()));
+    FRotator NewActorRot = GetNewRotation(Player->GetActorRotation());
+    NewActorRot.Normalize();
+    FRotator NewControlRot = GetNewRotation(PC->GetControlRotation());
+    NewControlRot.Normalize();
+    Player->SetActorTransform(FTransform(NewActorRot, NewLocation), false, nullptr, ETeleportType::TeleportPhysics);
+    PC->SetControlRotation(NewControlRot);
 
     if (Player)
-        Player->SetOrient(true);
+    {
+        TWeakObjectPtr WeakPlayer = Player;
+        FTimerHandle OrientTimerHandle;
+        GetWorldTimerManager().SetTimer(OrientTimerHandle, [WeakPlayer]()
+        {
+            if (WeakPlayer.IsValid())
+            {
+                WeakPlayer->SetOrient(true);
+            }
+        }, 0.2f, false);
+    }
 
     if (UPawnMovementComponent* MoveComp = Player->GetMovementComponent())
         MoveComp->Velocity = UpdateVelocity(MoveComp->Velocity);
