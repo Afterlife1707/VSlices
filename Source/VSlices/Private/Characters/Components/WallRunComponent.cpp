@@ -30,6 +30,9 @@ void UWallRunComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 	const float HorizontalSpeed = FVector2D(CurrentVelocity.X, CurrentVelocity.Y).Size();
 	if (HorizontalSpeed < MinVelocity)
 		StopWallRun();
+	
+	const float TargetTilt = bIsWallRunning ? ((Direction == EWallRunDir::Left) ? -CameraTiltAngle : CameraTiltAngle) : 0.0f;
+	//LOG_INFO("WallRun | Running: %d | TargetTilt: %.2f | CurrentTilt: %.2f",bIsWallRunning, TargetTilt, CurrentCameraTilt);
 }
 
 void UWallRunComponent::TryWallRun(const FHitResult& Hit)
@@ -46,8 +49,6 @@ void UWallRunComponent::TryWallRun(const FHitResult& Hit)
 		LastWallActor = Hit.GetActor();
 		StartWallRun(Hit.Normal);
 	}
-	else if (!bIsWallRunning) 
-		StopWallRun();
 }
 
 bool UWallRunComponent::CheckForWall(const FHitResult& Hit) 
@@ -74,7 +75,7 @@ bool UWallRunComponent::CheckForWall(const FHitResult& Hit)
 void UWallRunComponent::StartWallRun(const FVector& WallNormal)
 {
 	if(!MovementComponent->IsFalling() || bIsWallRunning) return;
-	//LOG_INFO("start Wall run");
+	LOG_INFO("start Wall run");
 
 	bIsWallRunning = true;
 	bCameraTilt = true;
@@ -90,7 +91,7 @@ void UWallRunComponent::StartWallRun(const FVector& WallNormal)
 
 void UWallRunComponent::StopWallRun()
 {
-	//LOG_INFO("Stop Wall run");
+	LOG_INFO("Stop Wall run");
 	GetWorld()->GetTimerManager().ClearTimer(WallRunTimerHandle);
 	MovementComponent->SetPlaneConstraintEnabled(false);
 	MovementComponent->GravityScale = DefaultGravityScale;
@@ -124,7 +125,7 @@ void UWallRunComponent::ResetWallRun()
 	bIsWallRunning = false;
 	Direction = EWallRunDir::None;
 	bCameraTilt = false;
-	LastWallActor=nullptr;
+	LastWallActor = nullptr;
 }
 
 void UWallRunComponent::UpdateCameraTilt(const float DeltaTime)
@@ -132,9 +133,11 @@ void UWallRunComponent::UpdateCameraTilt(const float DeltaTime)
 	const float TargetTilt = bIsWallRunning ? ((Direction == EWallRunDir::Left) ? -CameraTiltAngle : CameraTiltAngle) : 0.0f;
 	CurrentCameraTilt = FMath::FInterpTo(CurrentCameraTilt, TargetTilt, DeltaTime, CameraTiltSpeed);
     
+
 	if (FMath::Abs(CurrentCameraTilt - TargetTilt) < 0.1f)
 	{
 		CurrentCameraTilt = TargetTilt; 
-		bCameraTilt = false;
+		if (TargetTilt == 0.f)  // only stop updating when returning to zero
+			bCameraTilt = false;
 	}
 }

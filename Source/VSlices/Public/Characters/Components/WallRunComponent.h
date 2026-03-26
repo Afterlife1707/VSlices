@@ -49,11 +49,11 @@ private:
 	AActor* LastWallActor;
 	
 	UPROPERTY(EditDefaultsOnly, Category="Wall Run", meta=(AllowPrivateAccess))
-	float WallRunGravityScale = 0.5f;
+	float WallRunGravityScale = 0.25f;
 	UPROPERTY(EditDefaultsOnly, Category="Wall Run", meta=(AllowPrivateAccess))
 	float WallRunTimer = 0.75f;
 	UPROPERTY(EditDefaultsOnly, Category="Wall Run", meta=(AllowPrivateAccess))
-	float JumpForceMultiplier = 1.f;
+	float JumpForceMultiplier = 1.25f;
 	UPROPERTY(EditDefaultsOnly, Category="Wall Run", meta=(AllowPrivateAccess))
 	float JumpHeightBoost = 100.f;
 	UPROPERTY(EditDefaultsOnly, Category="Wall Run", meta=(AllowPrivateAccess))
