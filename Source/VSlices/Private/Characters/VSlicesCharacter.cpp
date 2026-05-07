@@ -17,6 +17,7 @@
 #include "Characters/Components/GrapplingHookComponent.h"
 #include "Characters/Components/LedgeComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Perception/AISense_Hearing.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -102,6 +103,9 @@ void AVSlicesCharacter::Move(const FInputActionValue& Value)
 
 	AddMovementInput(ForwardDirection, MovementVector.Y);
 	AddMovementInput(RightDirection, MovementVector.X);
+	
+	if(!bIsCrouched && GetVelocity().Length()>100.f)//threshold before making sound
+		UAISense_Hearing::ReportNoiseEvent(GetWorld(), GetActorLocation(), Loudness, this, NoiseRange, TagForPlayerSound);
 }
 
 void AVSlicesCharacter::Look(const FInputActionValue& Value)

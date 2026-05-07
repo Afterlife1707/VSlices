@@ -155,6 +155,14 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category="Footsteps")
 	class UFootstepData* FootstepData = nullptr;
 
+	//AI Detection
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI", meta = (AllowPrivateAccess))
+	float Loudness = 1.1f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI", meta = (AllowPrivateAccess))
+	float NoiseRange = 2500.f;
+	FName TagForPlayerSound = TEXT("Player Footsteps");
+	bool bCanBeDetected = true;
+	
 	FTimerHandle JumpCooldownTimerHandle;
 	mutable TSet<FString> AlreadyWarned;
 	// Cached at BeginPlay - populated if the component was added in Blueprint
