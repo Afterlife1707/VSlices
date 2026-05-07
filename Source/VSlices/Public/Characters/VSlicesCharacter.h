@@ -88,6 +88,24 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Movement")
 	void ShootGrapplingHook() const;
 
+	//Assassination
+	UFUNCTION(BlueprintCallable, Category="Combat")
+	void Attack();
+	// Set this in the Blueprint subclass to your NPC character class
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Assassination")
+	TSubclassOf<ACharacter> TargetCharacterClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Assassination")
+	UAnimMontage* AssassinationMontage;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Assassination")
+	UAnimMontage* VictimMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Assassination")
+	float AssassinationRange = 200.f;
+	// How closely the NPC must be facing away (dot product threshold, e.g. 0.7 = ~45 degrees)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Assassination")
+	float FacingThreshold = 0.7f;
+	
 	// Footsteps
 	void OnFootstep(const EFoot Foot);
 	
@@ -162,6 +180,13 @@ private:
 	float NoiseRange = 2500.f;
 	FName TagForPlayerSound = TEXT("Player Footsteps");
 	bool bCanBeDetected = true;
+	
+	//Assassination
+	void RepositionForAssassination(const AActor* NPC);
+	UFUNCTION()
+	void OnAssassinationMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+	UPROPERTY()
+	ACharacter* CurrentTarget = nullptr;
 	
 	FTimerHandle JumpCooldownTimerHandle;
 	mutable TSet<FString> AlreadyWarned;

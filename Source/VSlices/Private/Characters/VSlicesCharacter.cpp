@@ -179,6 +179,79 @@ void AVSlicesCharacter::ShootGrapplingHook() const
 	GrapplingHookComponent->TryShoot();
 }
 
+void AVSlicesCharacter::Attack()
+{
+    if (!TargetCharacterClass || !AssassinationMontage || !VictimMontage)
+    {
+        LOG_ERROR("Attack(): Missing required assassination assets.");
+        return;
+    }
+
+    const FVector PlayerLocation = GetActorLocation();
+    const FVector PlayerForward  = GetActorForwardVector();
+    const FVector TraceEnd       = PlayerLocation + (PlayerForward * AssassinationRange);
+
+    FHitResult HitResult;
+    FCollisionQueryParams QueryParams;
+    QueryParams.AddIgnoredActor(this);
+
+    if (!GetWorld()->LineTraceSingleByChannel(HitResult, PlayerLocation, TraceEnd, ECC_Pawn, QueryParams) || !HitResult.GetActor()) 
+    	return;
+
+    ACharacter* NPC = Cast<ACharacter>(HitResult.GetActor());
+    if (!NPC || !NPC->IsA(TargetCharacterClass)) return;
+
+    const FVector NPCForward = NPC->GetActorForwardVector();
+    if (const float NPCDot = FVector::DotProduct(PlayerForward, NPCForward); NPCDot < FacingThreshold) return;
+
+    CurrentTarget = NPC;
+
+    if (APlayerController* PC = Cast<APlayerController>(GetController()))
+    {
+        PC->DisableInput(PC);
+    }
+
+    if (UCharacterMovementComponent* NPCMovement = NPC->GetCharacterMovement())
+    {
+        NPCMovement->DisableMovement();
+    }
+	
+	RepositionForAssassination(CurrentTarget);
+    if (UAnimInstance* PlayerAnim = GetMesh()->GetAnimInstance())
+    {
+        PlayerAnim->Montage_Play(AssassinationMontage);
+
+        FOnMontageEnded EndDelegate;
+        EndDelegate.BindUObject(this, &AVSlicesCharacter::OnAssassinationMontageEnded);
+        PlayerAnim->Montage_SetEndDelegate(EndDelegate, AssassinationMontage);
+    }
+	
+    if (UAnimInstance* NPCAnim = NPC->GetMesh()->GetAnimInstance())
+    {
+        NPCAnim->Montage_Play(VictimMontage);
+    }
+}
+
+void AVSlicesCharacter::RepositionForAssassination(const AActor* NPC)
+{
+	const FVector TargetLocation = NPC->GetActorLocation() - NPC->GetActorForwardVector() * -20.f;   // + moves closer, - pushes back
+	const FRotator TargetRotation = NPC->GetActorRotation();
+
+	SetActorLocationAndRotation(TargetLocation, TargetRotation, false, nullptr, ETeleportType::TeleportPhysics);
+}
+
+void AVSlicesCharacter::OnAssassinationMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+	if (APlayerController* PC = Cast<APlayerController>(GetController()))
+	{
+		PC->EnableInput(PC);
+	}
+	if (CurrentTarget)
+	{
+		CurrentTarget = nullptr;
+	}
+}
+
 void AVSlicesCharacter::OnFootstep(const EFoot Foot)
 {
 	if (!FootstepData)

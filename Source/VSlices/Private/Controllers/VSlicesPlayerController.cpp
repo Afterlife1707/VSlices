@@ -41,6 +41,7 @@ void AVSlicesPlayerController::SetupInputComponent()
 		EnhancedInput->BindAction(SprintAction, ETriggerEvent::Started, this, &AVSlicesPlayerController::Sprint);
 		EnhancedInput->BindAction(SprintAction, ETriggerEvent::Completed, this, &AVSlicesPlayerController::UnSprint);
 		EnhancedInput->BindAction(GrappleAction, ETriggerEvent::Completed, this, &AVSlicesPlayerController::ShootGrapplingHook);
+		EnhancedInput->BindAction(AttackAction, ETriggerEvent::Completed, this, &AVSlicesPlayerController::Attack);
 	}
 	else
 	{
@@ -86,4 +87,9 @@ void AVSlicesPlayerController::UnSprint()
 void AVSlicesPlayerController::ShootGrapplingHook()
 {
 	if (PlayerCharacter) PlayerCharacter->ShootGrapplingHook();
+}
+
+void AVSlicesPlayerController::Attack()
+{
+	if (PlayerCharacter) PlayerCharacter->Attack();
 }

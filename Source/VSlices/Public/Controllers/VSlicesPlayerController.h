@@ -32,6 +32,8 @@ class VSLICES_API AVSlicesPlayerController : public APlayerController
 	UInputAction* SprintAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* GrappleAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	UInputAction* AttackAction;
 
 protected:
 	virtual void OnPossess(APawn* InPawn) override;
@@ -47,6 +49,7 @@ protected:
 	void Sprint();
 	void UnSprint();
 	void ShootGrapplingHook();
+	void Attack();
 	
 private:
 	UPROPERTY()
