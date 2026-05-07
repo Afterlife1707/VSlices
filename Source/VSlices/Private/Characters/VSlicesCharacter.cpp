@@ -51,7 +51,6 @@ void AVSlicesCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// Cache whatever parkour components have been added in Blueprint
 	SprintComponent        = FindComponentByClass<USprintComponent>();
 	SlideComponent         = FindComponentByClass<USlideComponent>();
 	SlopeComponent         = FindComponentByClass<USlopeComponent>();
@@ -349,7 +348,7 @@ void AVSlicesCharacter::CalcCamera(float DeltaTime, FMinimalViewInfo& OutResult)
 void AVSlicesCharacter::Landed(const FHitResult& Hit)
 {
 	Super::Landed(Hit);
-
+	UAISense_Hearing::ReportNoiseEvent(GetWorld(), GetActorLocation(), Loudness, this, NoiseRange, TagForPlayerSound);
 	if (WallRunComponent)
 	{
 		WallRunComponent->ResetWallRun();
