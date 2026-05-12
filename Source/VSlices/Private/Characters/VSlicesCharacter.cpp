@@ -220,7 +220,7 @@ void AVSlicesCharacter::Attack()
     if (UAnimInstance* PlayerAnim = GetMesh()->GetAnimInstance())
     {
         PlayerAnim->Montage_Play(AssassinationMontage);
-
+		UGameplayStatics::PlaySound2D(GetWorld(), AssassinationSound);
         FOnMontageEnded EndDelegate;
         EndDelegate.BindUObject(this, &AVSlicesCharacter::OnAssassinationMontageEnded);
         PlayerAnim->Montage_SetEndDelegate(EndDelegate, AssassinationMontage);
@@ -234,10 +234,14 @@ void AVSlicesCharacter::Attack()
 
 void AVSlicesCharacter::RepositionForAssassination(const AActor* NPC)
 {
-	const FVector TargetLocation = NPC->GetActorLocation() - NPC->GetActorForwardVector() * -20.f;   // + moves closer, - pushes back
+	const FVector TargetLocation = NPC->GetActorLocation() - NPC->GetActorForwardVector() * -30.f;   // + moves closer, - pushes back
 	const FRotator TargetRotation = NPC->GetActorRotation();
 
 	SetActorLocationAndRotation(TargetLocation, TargetRotation, false, nullptr, ETeleportType::TeleportPhysics);
+	if (APlayerController* PC = Cast<APlayerController>(GetController()))
+	{
+		PC->SetControlRotation(TargetRotation);
+	}
 }
 
 void AVSlicesCharacter::OnAssassinationMontageEnded(UAnimMontage* Montage, bool bInterrupted)

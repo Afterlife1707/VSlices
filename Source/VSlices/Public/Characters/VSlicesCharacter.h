@@ -99,7 +99,8 @@ public:
 	UAnimMontage* AssassinationMontage;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Assassination")
 	UAnimMontage* VictimMontage;
-
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Assassination")
+	USoundBase* AssassinationSound;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Assassination")
 	float AssassinationRange = 200.f;
 	// How closely the NPC must be facing away (dot product threshold, e.g. 0.7 = ~45 degrees)
