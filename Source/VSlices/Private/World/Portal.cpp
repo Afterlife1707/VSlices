@@ -52,9 +52,9 @@ void APortal::BeginPlay()
     
     NearCaptureDistanceSq = NearCaptureDistance * NearCaptureDistance;
     FarCaptureDistanceSq  = FarCaptureDistance  * FarCaptureDistance;
-    
     const FVector2D ViewportSize = UWidgetLayoutLibrary::GetViewportSize(GetWorld());
-    PortalRenderTarget = UKismetRenderingLibrary::CreateRenderTarget2D(GetWorld(), ViewportSize.X, ViewportSize.Y); //can reduce the res here but doesn't seem to make much of a diff, need to test more
+    constexpr float RTScale = 0.75f;
+    PortalRenderTarget = UKismetRenderingLibrary::CreateRenderTarget2D(GetWorld(),FMath::RoundToInt(ViewportSize.X * RTScale),FMath::RoundToInt(ViewportSize.Y * RTScale));
     PortalMat->SetTextureParameterValue("Texture", PortalRenderTarget);
     LinkedPortal->PortalCamera->TextureTarget = PortalRenderTarget;
     
@@ -65,6 +65,8 @@ void APortal::BeginPlay()
     PortalCamera->ShowFlags.SetMotionBlur(false);
     PortalCamera->ShowFlags.SetBloom(false);
     PortalCamera->ShowFlags.SetLensFlares(false);
+    PortalCamera->ShowFlags.Cloud = false;
+    PortalCamera->ShowFlags.SetVolumetricFog(false);
     
     SetClipPlanes();
 }
@@ -72,6 +74,15 @@ void APortal::BeginPlay()
 void APortal::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
+
+    // Early out if player is beyond far distance entirely
+    const float DistSq = FVector::DistSquared(Player->GetActorLocation(), GetActorLocation());
+    if (DistSq > FarCaptureDistanceSq * 4.f) // 2× the far distance
+    {
+        if (!bJustTeleportedTo && bCheckForTeleport)
+            CheckForTeleport();
+        return;
+    }
 
     if (PortalPlane->WasRecentlyRendered(0.1f))
     {
@@ -82,6 +93,7 @@ void APortal::Tick(float DeltaTime)
             CaptureTimer = 0.f;
         }
     }
+
     if (!bJustTeleportedTo && bCheckForTeleport)
         CheckForTeleport();
 }
@@ -100,6 +112,7 @@ void APortal::UpdateSceneCapture() const
     const FRotator NewRotation = LinkedPortal->GetActorTransform().TransformRotation(LocalRot.Quaternion()).Rotator();
 
     LinkedPortal->PortalCamera->SetWorldLocationAndRotation(NewLocation, NewRotation);
+    LinkedPortal->PortalCamera->CaptureScene();
 }
 
 void APortal::SetClipPlanes() const
@@ -202,7 +215,7 @@ float APortal::GetCaptureInterval() const
     if (!Player) return 0.f;
 
     const float DistSq = FVector::DistSquared(Player->GetActorLocation(), GetActorLocation());
-    if (DistSq > FarCaptureDistance  * FarCaptureDistance)  return 0.1f;
-    if (DistSq > NearCaptureDistance * NearCaptureDistance) return 0.05f;
-    return 0.f;
+    if (DistSq > FarCaptureDistanceSq)  return 0.1f;
+    if (DistSq > NearCaptureDistanceSq) return 0.05f;
+    return 0; 
 }
