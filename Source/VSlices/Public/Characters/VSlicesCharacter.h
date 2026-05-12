@@ -103,6 +103,8 @@ public:
 	USoundBase* AssassinationSound;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Assassination")
 	float AssassinationRange = 200.f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Assassination")
+	float RepositionDistance = -25.f;
 	// How closely the NPC must be facing away (dot product threshold, e.g. 0.7 = ~45 degrees)
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Assassination")
 	float FacingThreshold = 0.7f;

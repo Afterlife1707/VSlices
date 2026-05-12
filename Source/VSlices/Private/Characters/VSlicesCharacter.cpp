@@ -7,6 +7,7 @@
 #include "GameFramework/Controller.h"
 #include "InputActionValue.h"
 #include "CableComponent.h"
+#include "Characters/Assassinatable.h"
 #include "World/FootstepData.h"
 #include "Characters/Components/SprintComponent.h"
 #include "Characters/Components/SlideComponent.h"
@@ -228,13 +229,15 @@ void AVSlicesCharacter::Attack()
 	
     if (UAnimInstance* NPCAnim = NPC->GetMesh()->GetAnimInstance())
     {
+    	if (CurrentTarget && CurrentTarget->Implements<UAssassinatable>())
+    		IAssassinatable::Execute_OnAssassinated(CurrentTarget);
         NPCAnim->Montage_Play(VictimMontage);
     }
 }
 
 void AVSlicesCharacter::RepositionForAssassination(const AActor* NPC)
 {
-	const FVector TargetLocation = NPC->GetActorLocation() - NPC->GetActorForwardVector() * -30.f;   // + moves closer, - pushes back
+	const FVector TargetLocation = NPC->GetActorLocation() - NPC->GetActorForwardVector() * RepositionDistance;
 	const FRotator TargetRotation = NPC->GetActorRotation();
 
 	SetActorLocationAndRotation(TargetLocation, TargetRotation, false, nullptr, ETeleportType::TeleportPhysics);
