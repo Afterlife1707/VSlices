@@ -103,7 +103,9 @@ Every component exposes its tuning values as EditDefaultsOnly properties, includ
 
 ### Placing Portals
 Portals are placed as Blueprint actors directly in the level. Each portal has a configurable reference to its linked partner. On overlap, the player is teleported to the linked portal with velocity preserved.
- 
+
+ <img width="686" height="301" alt="image" src="https://github.com/user-attachments/assets/d101a870-5db6-4e7e-8eb1-5c81b6617e0f" />
+
 ### Setting Up the NPC
 The NPC Blueprint is placed directly in the level. A Patrol points BP needs to be placed as well and assigned in the details panel of the respective NPC. AI Perception (sight and hearing) is configured on the NPC's AIPerception component. The State Tree drives all behaviour transitions automatically from there which can be found on the custom AI Controller BP.
 
