@@ -39,7 +39,24 @@ ParkourBase implements a comprehensive parkour system by breaking down complex m
 - Clamped freelook during vault and ledge hang states
 - Dynamic camera offset during ledge hang, smoothly interpolated in CalcCamera
 - Wall run camera tilt via CalcCamera override
+
+### Portal System
+ 
+A teleportation portal system that links pairs of portals in the level.
+ 
+- Portals are linked in pairs — entering one teleports the player to the other
+- Preserves player velocity and orientation through the portal transition
+- Configurable in Blueprint; portals are placed and linked directly in the level
   
+### NPC System
+ 
+A basic enemy NPC built on Unreal Engine's State Tree, with perception-driven behaviour. Behaviour can be customised. Right now, it does nothing when detected.
+ 
+- **Patrol** — NPC follows a set of patrol points during its default idle state
+- **Investigate** — Triggered by sound or sight perception; NPC moves to the last known location to search
+- **Chase** — NPC pursues the player when they are directly spotted
+- **Death** — NPC can be assassinated from behind; plays a default death animation and sound on kill
+
 ## Architecture
 
 ### Component-Based Design
@@ -80,6 +97,12 @@ Each component exposes getter functions for current state:
 ### Blueprint-Configurable Parameters
 Every component exposes its tuning values as EditDefaultsOnly properties, including sprint speed, stamina drain/regen rates, vault heights, trace distances, wall run parameters, and audio thresholds.
 
+### Placing Portals
+Portals are placed as Blueprint actors directly in the level. Each portal has a configurable reference to its linked partner. On overlap, the player is teleported to the linked portal with velocity preserved.
+ 
+### Setting Up the NPC
+The NPC Blueprint is placed directly in the level. A Patrol points BP needs to be placed as well and assigned in the details panel of the respective NPC. AI Perception (sight and hearing) is configured on the NPC's AIPerception component. The State Tree drives all behaviour transitions automatically from there which can be found on the custom AI Controller BP.
+
 ### Animations and Audio Setup 
 - All the animations are from Mixamo. Some of them are reused and combined using animation composite.
 - The Animation Blueprint is ABP_Character, extended from ABP_Manny with custom parkour state logic
@@ -102,3 +125,5 @@ Every component exposes its tuning values as EditDefaultsOnly properties, includ
 - https://www.youtube.com/watch?v=z4LdRAMaifY&t=516s&ab_channel=UnrealAxis
 - https://trello.com/c/SLe2bi6F/59-https-wwwyoutubecom-watchvwmzkj1gsexmt44s
 - Cartoon Grappling Hook" (https://skfb.ly/6UNYo) by Matt LeMoine is licensed under Creative Commons Attribution (http://creativecommons.org/licenses/by/4.0/)
+- https://www.youtube.com/watch?v=UuqKC0AgeXU
+- https://www.youtube.com/watch?v=riijspB9DIQ&feature=youtu.be
