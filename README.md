@@ -1,10 +1,14 @@
-# ParkourBase
+# Vertical Slice
 
-A modular parkour system for Unreal Engine 5, part of a vertical slices project. This open-source system provides smooth, responsive parkour mechanics through independent, reusable components. This system is part of a larger vertical slices project. Each slice focuses on a specific game mechanic, with the parkour system being the first implementation.
+A collection of self-contained game mechanic implementations for Unreal Engine 5, built as modular, reusable vertical slices. Each slice focuses on a specific system — currently including a full parkour system, a portal teleportation system, and an AI NPC — all designed to be easily extended or dropped into other projects.
 
 ## Overview
 
-ParkourBase implements a comprehensive parkour system by breaking down complex movement mechanics into modular components that can be easily mixed, matched, and extended. Each component handles a specific parkour action while maintaining independence from others, allowing for flexible gameplay design. The project contains a small parkour map ready for playtesting, using engine assets.
+Each vertical slice is implemented as an independent, modular system that can be mixed, matched, and extended without dependencies on the others. The project includes a small playtestable map built with engine assets that brings all current slices together. Slices completed so far:
+
+- **Parkour System** — Sprint, slide, vault, wall run, grapple, ledge hang, and an enhanced jump system with coyote time
+- **Portal System** — Paired teleportation portals with velocity and orientation preservation
+- **NPC System** — State Tree-driven enemy with patrol, investigate, chase, and assassination states
 
 ## Features
 
