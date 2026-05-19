@@ -120,10 +120,7 @@ The NPC Blueprint is placed directly in the level. A Patrol points BP needs to b
 - Some animations use a custom notify to drive control rotation, syncing the camera with the animation (e.g. landing)
 - There is audio on the animations available, which are reused quite a lot, so they may not sound great. They're all implemented using notifiers.
 
-<img width="720" height="500" alt="image" src="https://github.com/user-attachments/assets/3c2898db-db25-4282-a90e-80c25196117e" />
-
-<img width="500" height="500" alt="image" src="https://github.com/user-attachments/assets/647c9fd4-2b3b-495b-8cd6-b7cf9002d487" />
-
+<img width="415" height="284" alt="Screenshot 2025-09-13 191003" src="https://github.com/user-attachments/assets/4a08071b-8408-4d93-b110-a13abe2ba618" />
 
 ## Acknowledgments
 
