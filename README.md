@@ -13,8 +13,6 @@ Each vertical slice is implemented as an independent, modular system that can be
 ## Features
 
 ### Core Movement Components
-
-<img width="569" height="619" alt="image" src="https://github.com/user-attachments/assets/307a3f3f-b17b-4c25-9fa6-121220284d9d" />
                                                  
 - **Sprint Component** - Custom sprint with cooldown, stamina system, and breathing audio that reacts to exhaustion level
 - **Slide Component** - Ground sliding with momentum preservation based on timer and slope(used in accordance with the Slope Component to detect slopes)
@@ -24,7 +22,8 @@ Each vertical slice is implemented as an independent, modular system that can be
 - **Grappling Hook Component** - Simple grappling gun with a cable component
 - **Ledge Component** — Ledge detection and hanging, with clamped freelook and camera offset during hang
 
-<img width="1089" height="481" alt="image" src="https://github.com/user-attachments/assets/65833f94-d9c2-46eb-9c8d-627e9531ea55" />
+<img width="569" height="619" alt="Screenshot 2026-03-12 173122" src="https://github.com/user-attachments/assets/0da775a2-f082-46db-a1a5-163de116fbd7" />
+
 
 ### Enhanced Jump System
 - **Coyote Time** - Grace period for jumping after leaving platforms
@@ -108,6 +107,10 @@ Portals are placed as Blueprint actors directly in the level. Each portal has a 
 
 ### Setting Up the NPC
 The NPC Blueprint is placed directly in the level. A Patrol points BP needs to be placed as well and assigned in the details panel of the respective NPC. AI Perception (sight and hearing) is configured on the NPC's AIPerception component. The State Tree drives all behaviour transitions automatically from there which can be found on the custom AI Controller BP.
+
+<img width="1198" height="631" alt="Screenshot 2026-05-19 181616" src="https://github.com/user-attachments/assets/30d678d7-c575-4878-8b5b-baf3933a0703" />
+
+<img width="683" height="297" alt="Screenshot 2026-05-19 181529" src="https://github.com/user-attachments/assets/3208d255-447c-4238-b0eb-8218a318dd63" />
 
 ### Animations and Audio Setup 
 - All the animations are from Mixamo. Some of them are reused and combined using animation composite.
